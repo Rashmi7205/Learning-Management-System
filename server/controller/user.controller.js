@@ -1,286 +1,474 @@
 import User from "../models/user.model.js";
 import sendEmail from "../utils/sendEmail.js";
 import AppError from "../utils/user.error.js";
-import cloudinary from "cloudinary";
 import fs from "fs/promises";
 import crypto from "crypto";
-import bcrypt from 'bcrypt';
+import { isBlank, validatePassword } from "../utils/validate.js";
+import { ERROR_MESSAGES } from "../constants/index.js";
+import ApiResponse from "../utils/apiResponse.js";
+import ApiError from "../utils/user.error.js";
+import generateOtp from "../utils/generateOtp.js";
+import sendSms from "../utils/sendSms.js";
 
 const cookieOption = {
-    maxAge:7*24*60*60*1000,/// 7 days
-    httpOnly:true
+    maxAge: 7 * 24 * 60 * 60 * 1000,/// 7 days
+    httpOnly: true
 }
 
-const  register = async(req,res,next)=>{
-    const {fullName,email,password} = req.body;
-    
-    if(!fullName||!email||!password){
-        return next(new AppError("All fields are Required",400));
+const register = async (req, res, next) => {
+    const { firstName, lastName, email, password } = req.body;
+
+    if (isBlank(firstName) || isBlank(lastName) || isBlank(email)) {
+        return AppError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
+    }
+    const isValidPassword = validatePassword(password);
+    if (!isValidPassword.valid) {
+        return AppError(res,isValidPassword.message, 400);
     }
 
-    /// If there is an existing user in the DB
-    const userExist = await User.findOne({email});
-    if(userExist){
-        return next(new AppError("Already user exists",400));
+    // If there is an existing user in the DB
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        return AppError(res, ERROR_MESSAGES.ALREADY_EXISTS, 400);
     }
 
-    /// Creating a user
+    // Creating a user
 
     const user = await User.create({
-        fullName,
+        firstName,
+        lastName,
         email,
         password,
-        avatar:{
-            public_id:email,
-            secure_url:"##"
-        }
+        avatar: {
+            publicId: "#",
+            secureUrl: "#"
+        },
+        lastLoginAt: new Date(),
     })
 
-    if(!user){
-        return next(new AppError("User Registration Failed!",400));
+    if (!user) {
+        return AppError(res, "User Registration Failed!", 400);
     }
 
     // / File Upload To Cloudinary
-    if(req.file){
-        try {
-            const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:"lms",
-                width:250,
-                height:250,
-                gravity:'faces',
-                crop:'fill'
-            });
-            if(result){
-                user.avatar.public_id=result.public_id;
-                user.avatar.secure_url=result.secure_url;
+    // if(req.file?.avatar){
+    //     try {
+    //         const {publicId,secureUrl} = await uploadImage(req.file?.avatar?.path);
+    //         if(publicId && secureUrl){
+    //             user.avatar.publicId = publicId;
+    //             user.avatar.secureUrl = secureUrl;
 
-                /// Remove the file from server
-                fs.rm( `uploads/${req.file.filename}`);
-            }
-        } catch (e) {
-            return next(new AppError('file not uploaded try again',500));
-        }
-    }
+    //             // Remove the file from server
+    //             fs.rm( `uploads/${req.file.filename}`);
+    //         }
+    //     } catch (e) {
+    //         return AppError(res,'file not uploaded try again',500));
+    //     }
+    // }
 
     /// Saving the user
     await user.save();
 
-    user.password=undefined;
+    user.password = undefined;
 
     const token = await user.generateJWTtoken();
-    res.cookie('token',token,cookieOption)
+    res.cookie('token', token, cookieOption)
 
-   res.status(200).json({
-        success:true,
-        message:"USer Registered Successfully",
-        user
-    })
-
-} 
-const  login = async(req,res,next)=>{
-
-    const {email,password} = req.body;
-    try {
-        if(!email||!password){
-            return next(new AppError("Every field is required",400));
-        }
-    
-        const user = await User.findOne({email}).select('+password');
-    
-        if(!user || !user.comparePassword(password)){
-            return next(new AppError('Email or password Does not match',400));
-        }
-    
-        user.password=undefined;
-        const token = await user.generateJWTtoken();
-      
-    
-        res.cookie('token',token,cookieOption);
-    
-        res.status(200).json({
-            success:true,
-            message:"User Logged in Successfully",
-            user
-        })
-    
-    } catch (error) {
-        return next(new AppError(error.message,500));
-    }
-    
-
-} 
-const  logout = async(req,res)=>{
-    res.cookie('token',null,{
-        secure:true,
-        maxAge:0,
-        httpOnly:true
+    return ApiResponse(res, {
+        statusCode: 200,
+        message: "User registered successfully",
+        data: user
     });
-
-    res.status(200).json({
-        success:true,
-        message:"User Logged out Successfully"
-    })
-} 
-const  getProfile = async(req,res,next)=>{
-    const {email} = req.user.email;
-    try {
-        const user = await User.findOne(email);
-        res.status(200).json({
-            success:true,
-            message:"User data fetched successfully",
-            user
-        })
-    } catch (error) {
-        return next(new AppError('User data Fetching failed',404))
-    }
-   
-} 
-
-const forgotPassword = async (req,res,next)=>{
-
-    const {email}= req.body;
-    
-    if(!email){
-        return next(new AppError("Email is Required",400));
-    }
-
-    const user = await User.findOne({email});
-
-    if(!user){
-        return next(new AppError("Account Not Exist",400));
-    }
-
-    const resetToken =await user.generatePasswordResetToken();
-
-
-    await user.save();
-
-    const resetPasswordUrl=`link/reset-password/${resetToken}`;
-
-    const subject = "Reset Password";
-    const message = `You can  Can reset your password By Clicking <a href ="${resetPasswordUrl}" target="_blank">Click Here</a>`
-
-    try {
-        await sendEmail(email,subject,message);
-        res.status(200).json({
-            success:true,
-            message:`Reset Password token has been sent to ${email}`
-        })
-    } catch (e) {
-        user.forgotPasswordExpiaryDate=undefined;
-        user.forgotPasswordToken=undefined;
-        await user.save();
-
-        return next(new AppError(e.message,400));
-    }
-
-   
-
 }
+const login = async (req, res, next) => {
+
+    const { email, password } = req.body;
+    try {
+        if (isBlank(email) || isBlank(password)) {
+            return AppError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
+        }
+
+        const user = await User.findOne({ email }).select('+password');
+
+        if (!user) {
+            return AppError(res, ERROR_MESSAGES.UNAUTHORIZED, 400);
+        }
+        const passwordMatched = await user.comparePassword(password);
+        if (!passwordMatched) {
+            return AppError(res, ERROR_MESSAGES.INCORRECT_PASS_OR_USERNAME, 400);
+        }
 
 
-const resetPassword = async (req,res,next)=>{
-    const {resetToken} = req.params;
+        user.lastLoginAt = new Date();
+        await user.save({ validateBeforeSave: false });
 
-    
-    const {password} = req.body;
+        user.password = undefined;
 
-    const user =  await User.findOne({
-        forgotPasswordToken:resetToken,
-        forgotPasswordExpiaryDate:{$gt:Date.now()}
-    });
-    const forgotPasswordToken = crypto
-                            .createHash('sha256')
-                            .update(resetToken)
-                            .digest('hex');
-    if(!user){
-        return next(new AppError("User Not Found",400));
-    }
+        const token = await user.generateJWTtoken();
 
-    user.password=password;
-    user.forgotPasswordExpiaryDate=undefined;
-    user.forgotPasswordToken=undefined;
 
-    user.save();
+        res.cookie('token', token, cookieOption);
 
-        res.status(200).json({
-            success:true,
-            message:"Your Password Reset Succsessfully!"
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "User loggin successful",
+            data: user
         });
 
-
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
 }
-const changePassword = async (req,res,next)=>{
-    const {oldPassword,newPassword} = req.body;
-    const {id} = req.user;
-    if(!oldPassword||!newPassword){
-        return next(new AppError("Every Field is mandatory",400));
+const logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "User logged out successfully",
+        });
+    } catch (error) {
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: ERROR_MESSAGES.OPERATION_FAILED,
+        });
     }
-
-    const user = await User.findById(id).select('+password');
-
-    if(!user){
-        return next(new AppError("User Does not exist",400));
-    }
-
-    const isvalidPassword = await user.comparePassword(oldPassword);
-
-    if(!isvalidPassword){
-        return next(new AppError("password invalid"));
-    }
-    
-    user.password = newPassword;
-    user.save();
-    user.password = undefined;
-    res.status(200).json({
-        success:true,
-        message:"Password Updated Succsessfully"
-    })
-    
 }
-const updateProfile = async (req,res,next)=>{
-    const {fullName} = req.body;
-    const {id} = req.user;
-
-    const user = await User.findById(id);
-
-    if(!user){
-        return next(new AppError("User Does not exist",400));
-    }
-
-    if(fullName){
-        user.fullName = fullName;
-    }
-
-    if(req.file){
-        await cloudinary.v2.uploader.destroy(user.avatar.public_id);
-        try {
-            const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder:"lms",
-                width:250,
-                height:250,
-                gravity:'faces',
-                crop:'fill'
-            });
-            if(result){
-                user.avatar.public_id=result.public_id;
-                user.avatar.secure_url=result.secure_url;
-
-                /// Remove the file from server
-                fs.rm( `uploads/${req.file.filename}`);
-            }
-        } catch (e) {
-            return next(new AppError('file not uploaded try again',500));
+const getProfile = async (req, res, next) => {
+    const { id } = req.user;
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            return AppError(res, ERROR_MESSAGES.NOT_FOUND, 404);
         }
+        return ApiResponse(res, {
+            statusCode: 200,
+            data: user
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 404);
     }
-    await user.save();
 
-    res.status(200).json({
-        success:true,
-        message:"Profile Updated succsessfully"
-    })
 }
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return AppError(res, "Email is required", 400);
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return AppError(res, "Account does not exist", 404);
+        }
+
+        // Generate token
+        const resetToken = await user.generatePasswordResetToken();
+        await user.save({ validateBeforeSave: false });
+
+        const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+        const subject = "Reset Your Password";
+        const message = `
+      <p>You requested a password reset.</p>
+      <p>
+        <a href="${resetPasswordUrl}" target="_blank">
+          Click here to reset your password
+        </a>
+      </p>
+    `;
+
+        const emailSent = await sendEmail(email, subject, message);
+
+        if (!emailSent) {
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpiry = undefined;
+            await user.save({ validateBeforeSave: false });
+
+            return AppError(res, "Email could not be sent", 500);
+        }
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: `Reset password link sent to ${email}`,
+        });
+
+    } catch (error) {
+        return AppError(
+            res,
+            ERROR_MESSAGES.OPERATION_FAILED,
+            500,
+        );
+    }
+};
+
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const { resetToken } = req.params;
+        const { password } = req.body;
+
+        if (!password) {
+            return AppError(res, "Password is required", 400);
+        }
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpiry: { $gt: Date.now() },
+        }).select("+password");
+
+        if (!user) {
+            return AppError(res, "Token is invalid or expired", 400);
+        }
+
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiry = undefined;
+
+        await user.save();
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "Password reset successfully"
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+
+};
+
+const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+        if (!currentPassword || !newPassword) {
+            return AppError(res, "All fields are mandatory", 400);
+        }
+        const isValidPassword = validatePassword(newPassword);
+        if (!isValidPassword.valid) {
+            return AppError(res, isValidPassword.message, 400);
+        }
+
+        const user = await User.findById(userId).select("+password");
+
+        if (!user) {
+            return AppError(res, "User does not exist", 404);
+        }
+
+        const isMatch = await user.comparePassword(currentPassword);
+
+        if (!isMatch) {
+            return AppError(res, "Old password is incorrect", 401);
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "Password updated successfully"
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+};
+
+
+const updateProfile = async (req, res, next) => {
+    try {
+        const { firstName, lastName ,phone,bio,gender,dob,country} = req.body;
+        if(isBlank(firstName) || isBlank(lastName) || isBlank(phone) || isBlank(bio) || isBlank(gender) || isBlank(dob) || isBlank(country)){
+            return ApiError(res,ERROR_MESSAGES.REQUIRED_FIELD,404);
+        }
+        const userId = req.user.id;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return AppError(res, "User does not exist", 404);
+        }
+
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (bio) user.bio = bio;
+
+        if (req.file) {
+            try {
+                // Remove old avatar
+                if (user.avatar?.publicId) {
+                    await cloudinary.v2.uploader.destroy(user.avatar.publicId);
+                }
+
+                const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                    folder: "lms/avatars",
+                    width: 250,
+                    height: 250,
+                    crop: "fill",
+                    gravity: "faces",
+                });
+
+                user.avatar = {
+                    publicId: result.public_id,
+                    secureUrl: result.secure_url,
+                };
+
+                fs.unlinkSync(req.file.path);
+            } catch (error) {
+                return AppError(res, "Avatar upload failed", 500);
+            }
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user,
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+};
+
+//send email otp
+const sendEmailOtp = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (isBlank(email)) {
+            return AppError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return AppError(res, "Account does not exist", 404);
+        }
+        // Generate OTP
+        const otp = generateOtp();
+        user.verificationToken = otp;
+        user.verificationExpiry = Date.now() + 10 * 60 * 1000;
+        await user.save({ validateBeforeSave: false });
+        const subject = "Your Email Verification OTP";
+        const message = `
+      <p>Your OTP for email verification is: <strong>${otp}</strong></p> `
+const emailSent = await sendEmail(email, subject, message);
+        if (!emailSent) {
+            user.verificationToken = undefined;
+            user.verificationExpiry = undefined;
+            await user.save({ validateBeforeSave: false });
+            return AppError(res, "Email could not be sent", 500);
+        }
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: `OTP sent to ${email}`,
+        });
+    } catch (error) {
+        return AppError(
+            res,
+            ERROR_MESSAGES.OPERATION_FAILED,
+            500,
+        );
+    }
+};
+
+//send mobile otp
+const sendPhoneOtp = async (req, res, next) => {
+    try {
+        const { phone } = req.body;
+        if (isBlank(phone)) {
+            return AppError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
+        }
+        const user = await User.find
+One({ phone });
+        if (!user) {
+            return AppError(res, "Account does not exist", 404);
+        }
+        // Generate OTP
+        const otp = generateOtp();
+        user.verificationToken = otp;
+        user.verificationExpiry = Date.now() + 10 * 60 * 1000;
+        await user.save({ validateBeforeSave: false });
+        const message = `Your OTP for phone verification is: ${otp}`;
+        const smsSent = await sendSms(phone, message);
+        if (!smsSent) {
+            user.verificationToken = undefined;
+            user.verificationExpiry = undefined;
+            await user.save({ validateBeforeSave: false });
+            return AppError(res, "SMS could not be sent", 500);
+        }
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: `OTP sent to ${phone}`,
+        });
+    }
+    catch (error) {
+        return AppError(
+            res,
+            ERROR_MESSAGES.OPERATION_FAILED,
+            500,
+        );
+    }
+};
+//verify email
+const verifyEmail = async (req, res, next) => {
+    try {
+        const { verificationToken } = req.params;
+        const user = await User.findOne({
+            verificationToken,
+            verificationExpiry: { $gt: Date.now() },
+        });
+        if (!user) {
+            return AppError(res, "Token is invalid or expired", 400);
+        }
+        user.emailVerified = true;
+        user.verificationToken = undefined;
+        user.verificationExpiry = undefined;
+        await user.save();
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "Email verified successfully"
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+};
+
+
+//verify phone
+const verifyPhone = async (req, res, next) => {
+    try {
+        const { verificationToken } = req.params;
+        const user = await User.findOne({
+            verificationToken,
+            verificationExpiry: { $gt: Date.now() },
+        });
+        if (!user) {
+            return AppError(res, "Token is invalid or expired", 400);
+        }
+        user.phoneVerified = true;
+        user.verificationToken = undefined;
+        user.verificationExpiry = undefined;
+        await user.save();
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            message: "Phone verified successfully"
+        });
+    } catch (error) {
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+};
 
 export {
     register,
@@ -290,5 +478,9 @@ export {
     forgotPassword,
     resetPassword,
     changePassword,
-    updateProfile
+    updateProfile,
+    sendEmailOtp,
+    sendPhoneOtp,
+    verifyEmail,
+    verifyPhone
 }

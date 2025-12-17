@@ -1,9 +1,26 @@
-class AppError extends Error{
-    constructor(message,statusCode){
-        super(message);
-        this.statusCode=statusCode;
-        Error.captureStackTrace(this,this.constructor);
-    }
-}
+const ApiError = (
+    res,
+    message = "Internal Server Error",
+    statusCode = 500,
+    errors = null,
+) => {
 
-export default AppError
+    if (process.env.NODE_ENV === "dev") {
+        console.error("API ERROR:", message);
+
+        if (errors) {
+            console.error("DETAILS:", errors);
+        }
+    }
+
+    const response = {
+        success: false,
+        message,
+    };
+
+    if (errors) response.errors = errors;
+
+    return res.status(statusCode).json(response);
+};
+
+export default ApiError;

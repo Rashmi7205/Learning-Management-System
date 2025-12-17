@@ -1,89 +1,164 @@
-import { model,Schema } from "mongoose";
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import mongoose, { model, Schema } from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
-
-const userSchema = new Schema({
-    fullName:{
-        type:String,
-        required:[true,"Name is Required"],
-        minLength:[5,"name must be atleast 5 char"],
-        maxLength:[50,"name should not be more then 50 char"],
-        trim:true,
-        lowercase:true
-    },
-    email:{
-        type:String,
-        required:[true,"Email is Required"],
-        unique:true,
-        lowercase:true,
-        trim:true,
-    },
-    password:{
-        type:String,
-        required:[true,"password is Required"],
-        minLength:[8,'PAssword must be 8 char'],
-        select:false
-    },
-    avatar:{
-        public_id:{
-            type:String
+const userSchema = new Schema(
+    {
+        // Identity
+        firstName: { type: String, trim: true },
+        lastName: { type: String, trim: true },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            index: true,
         },
-        secure_url:{
-            type:String
+        phone: String,
+
+        // Auth
+        password: {
+            type: String,
+            required: function () {
+                return this.authProvider === "local";
+            },
+            select: false,
+        },
+        authProvider: {
+            type: String,
+            enum: ["local", "google"],
+            default: "local",
+        },
+        lastLoginAt: Date,
+
+        // Roles & Access
+        role: {
+            type: String,
+            enum: ["student", "instructor", "admin"],
+            default: "student",
+        },
+        isActive: { type: Boolean, default: true },
+
+        // Profile
+        avatar: {
+            publicId: String,
+            secureUrl: String,
+        },
+        bio: String,
+        gender: String,
+        dob: Date,
+        country: String,
+
+        // Verification
+        emailVerified: { type: Boolean, default: false },
+        phoneVerified: { type: Boolean, default: false },
+        verificationToken: String,
+        verificationExpiry: Date,
+
+        // Security
+        resetPasswordToken: String,
+        resetPasswordOtp: String,
+        resetPasswordExpiry: Date,
+        lockUntil: Date,
+
+        // Preferences
+        notificationSettings: { type: Object, default: {} },
+        darkMode: { type: Boolean, default: false },
+
+        // Analytics
+        totalCoursesEnrolled: { type: Number, default: 0 },
+        totalCoursesCompleted: { type: Number, default: 0 },
+        totalLearningTime: { type: Number, default: 0 },
+    },
+    { timestamps: true }
+);
+
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
+userSchema.methods.generateJWTtoken = function () {
+    return jwt.sign(
+        {
+            id: this._id,
+            email: this.email,
+            role: this.role,
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: process.env.JWT_EXPIRY,
         }
+    );
+};
+
+userSchema.methods.comparePassword = async function (plainTextPassword) {
+    return bcrypt.compare(plainTextPassword, this.password);
+};
+
+userSchema.methods.generatePasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    this.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+    this.resetPasswordExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    return resetToken;
+};
+
+const User = model("User", userSchema);
+
+const instructorSchema = new Schema(
+    {
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+        // Professional
+        title: String,
+        expertise: [String],
+        yearsOfExperience: Number,
+        education: String,
+        certifications: [String],
+
+        // Public Profile
+        website: String,
+        linkedin: String,
+        twitter: String,
+        youtube: String,
+
+        // Ratings
+        rating: { type: Number, default: 0 },
+        totalReviews: { type: Number, default: 0 },
+        totalStudents: { type: Number, default: 0 },
+        totalCourses: { type: Number, default: 0 },
+
+        // Earnings
+        totalEarnings: { type: Number, default: 0 },
+        pendingPayout: { type: Number, default: 0 },
+        payoutMethod: String,
+        payoutDetails: Object,
+
+        // Compliance
+        identityVerified: { type: Boolean, default: false },
+        taxId: String,
+        agreementAcceptedAt: Date,
+
+        // Status
+        isFeatured: { type: Boolean, default: false },
+        isSuspended: { type: Boolean, default: false },
+        suspensionReason: String,
     },
-    role:{
-        type:String,
-        enum:['USER','ADMIN'],
-        default:'USER'
-    },
-    forgotPasswordToken:String,
-    forgotPasswordExpiaryDate:Date
+    { timestamps: true }
+);
 
-},{
-    timestamps:true
-})
-
-userSchema.pre('save',async function(next){
-    if(!this.isModified('password')){
-        return next();
-    }
-    this.password = await bcrypt.hash(this.password,10);
-})
-
-userSchema.methods ={
-    generateJWTtoken:async function(){
-        return await jwt.sign({
-            id:this._id,
-            email:this.email,
-            subscription:this.subscription
-            }
-            ,process.env.JWT_SECRET,
-            {
-                expiresIn:process.env.JWT_EXPIRY
-            }
-        )
-    },
-    comparePassword:async function(plainTextPassword){
-        return await bcrypt.compare(plainTextPassword,this.password);
-    },
-    generatePasswordResetToken:async function(){
-        const resetToken = crypto.randomBytes(20).toString('hex');
-
-        this.forgotPasswordToken = crypto
-                .createHash('sha256')
-                .update(resetToken)
-                .digest('hex');
-            
-        this.forgotPasswordExpiaryDate = Date.now()+15*60*1000; /// 15 min from now
-
-        return resetToken;
-
-    }
-}
-const User = model("User",userSchema);
-
-export  default User
-
+export const Instructor = model("Instructor", instructorSchema);
+export default User;

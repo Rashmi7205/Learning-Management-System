@@ -14,7 +14,7 @@ app.use(express.json());
 
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());/// parse token to json
-app.use('/api/v1/user',userRoutes);
+app.use('/api/auth',userRoutes);
 
 app.get('/ping',(req,res)=>{
     res.send('/pong');

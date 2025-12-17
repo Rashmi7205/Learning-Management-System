@@ -6,10 +6,10 @@ const isLoggedIn = async (req,res,next)=>{
     const {token} = req.cookies;
 
     if(!token){
-        return next(new AppError('Unauthenticated USer',400));
+        return next(AppError(res,'Unauthenticated User',400));
     }
-    const userDetails = await Jwt.verify(token,process.env.JWT_SECRET);
-   
+    const userDetails =  Jwt.verify(token,process.env.JWT_SECRET);
+    
     req.user = userDetails;
 
     next();
