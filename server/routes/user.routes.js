@@ -8,7 +8,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/logout', isLoggedIn,logout);
 router.get('/profile', isLoggedIn, getProfile);
-router.post('/update', isLoggedIn, upload.single('avatar'), updateProfile);
+router.put('/update', isLoggedIn, upload.single('avatar'), updateProfile);
 router.post('/reset', forgotPassword);
 router.post('/reset/:resetToken', resetPassword);
 router.post('/change-password', isLoggedIn, changePassword);

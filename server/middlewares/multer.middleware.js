@@ -51,7 +51,7 @@ const fileFilter = (req, file, cb) => {
         fileSize: 1024 * 1024 * 10,//10 mb max
     },
 });
-export default upload; 
+export default upload;
 
 // req.files = {
 //     thumbnail: [

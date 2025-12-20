@@ -53,13 +53,28 @@ const userSchema = new Schema(
         // Verification
         emailVerified: { type: Boolean, default: false },
         phoneVerified: { type: Boolean, default: false },
-        verificationToken: String,
-        verificationExpiry: Date,
+        verificationToken: {
+            type:String,
+            select:false,
+        },
+        verificationExpiry: {
+            type: String,
+            select: false,
+        },
 
         // Security
-        resetPasswordToken: String,
-        resetPasswordOtp: String,
-        resetPasswordExpiry: Date,
+        resetPasswordToken: {
+            type: String,
+            select: false,
+        },
+        resetPasswordOtp: {
+            type: String,
+            select: false,
+        },
+        resetPasswordExpiry: {
+            type: String,
+            select: false,
+        },
         lockUntil: Date,
 
         // Preferences

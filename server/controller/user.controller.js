@@ -9,6 +9,9 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/user.error.js";
 import generateOtp from "../utils/generateOtp.js";
 import sendSms from "../utils/sendSms.js";
+import { deleteImage, uploadImage } from "../services/cloudinary.js";
+import { error } from "console";
+
 
 const cookieOption = {
     maxAge: 7 * 24 * 60 * 60 * 1000,/// 7 days
@@ -23,7 +26,7 @@ const register = async (req, res, next) => {
     }
     const isValidPassword = validatePassword(password);
     if (!isValidPassword.valid) {
-        return AppError(res,isValidPassword.message, 400);
+        return AppError(res, isValidPassword.message, 400);
     }
 
     // If there is an existing user in the DB
@@ -49,22 +52,6 @@ const register = async (req, res, next) => {
     if (!user) {
         return AppError(res, "User Registration Failed!", 400);
     }
-
-    // / File Upload To Cloudinary
-    // if(req.file?.avatar){
-    //     try {
-    //         const {publicId,secureUrl} = await uploadImage(req.file?.avatar?.path);
-    //         if(publicId && secureUrl){
-    //             user.avatar.publicId = publicId;
-    //             user.avatar.secureUrl = secureUrl;
-
-    //             // Remove the file from server
-    //             fs.rm( `uploads/${req.file.filename}`);
-    //         }
-    //     } catch (e) {
-    //         return AppError(res,'file not uploaded try again',500));
-    //     }
-    // }
 
     /// Saving the user
     await user.save();
@@ -288,45 +275,39 @@ const changePassword = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
     try {
-        const { firstName, lastName ,phone,bio,gender,dob,country} = req.body;
-        if(isBlank(firstName) || isBlank(lastName) || isBlank(phone) || isBlank(bio) || isBlank(gender) || isBlank(dob) || isBlank(country)){
-            return ApiError(res,ERROR_MESSAGES.REQUIRED_FIELD,404);
+        const { firstName, lastName, phone, bio, gender, dob, country } = req.body;
+        if (isBlank(firstName) || isBlank(lastName) || isBlank(phone) || isBlank(bio) || isBlank(gender) || isBlank(dob) || isBlank(country)) {
+            return ApiError(res, ERROR_MESSAGES.REQUIRED_FIELD, 404);
         }
         const userId = req.user.id;
-
         const user = await User.findById(userId);
-
         if (!user) {
             return AppError(res, "User does not exist", 404);
         }
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.phone = phone;
+        user.bio = bio;
+        user.gender = gender
+        user.dob = dob;
+        user.country = country;
 
-        if (firstName) user.firstName = firstName;
-        if (lastName) user.lastName = lastName;
-        if (bio) user.bio = bio;
-
-        if (req.file) {
+        // File Upload To Cloudinary
+        if(req.file){
             try {
-                // Remove old avatar
-                if (user.avatar?.publicId) {
-                    await cloudinary.v2.uploader.destroy(user.avatar.publicId);
+            if(user.avatar.publicId && user.avatar.publicId !== "#"){
+                    //delete existing image
+                    await deleteImage(user.avatar.publicId);
+            }
+            const {publicId,secureUrl} = await uploadImage(req.file?.path);
+                if(publicId && secureUrl){
+                    user.avatar.publicId = publicId;
+                    user.avatar.secureUrl = secureUrl;
                 }
-
-                const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                    folder: "lms/avatars",
-                    width: 250,
-                    height: 250,
-                    crop: "fill",
-                    gravity: "faces",
-                });
-
-                user.avatar = {
-                    publicId: result.public_id,
-                    secureUrl: result.secure_url,
-                };
-
-                fs.unlinkSync(req.file.path);
-            } catch (error) {
-                return AppError(res, "Avatar upload failed", 500);
+            } catch (e) {
+                //remove the uploaded file from temp folder in case of error
+                fs.rmSync(req.file?.path);
+                return AppError(res,'file not uploaded try again',500);
             }
         }
 
@@ -361,7 +342,7 @@ const sendEmailOtp = async (req, res, next) => {
         const subject = "Your Email Verification OTP";
         const message = `
       <p>Your OTP for email verification is: <strong>${otp}</strong></p> `
-const emailSent = await sendEmail(email, subject, message);
+        const emailSent = await sendEmail(email, subject, message);
         if (!emailSent) {
             user.verificationToken = undefined;
             user.verificationExpiry = undefined;
@@ -385,11 +366,14 @@ const emailSent = await sendEmail(email, subject, message);
 const sendPhoneOtp = async (req, res, next) => {
     try {
         const { phone } = req.body;
+        const {id} = req.user;
+        if(!id){
+            return AppError(res, ERROR_MESSAGES.UNAUTHORIZED, 400);
+        }
         if (isBlank(phone)) {
             return AppError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
         }
-        const user = await User.find
-One({ phone });
+        const user = await User.findById(id);
         if (!user) {
             return AppError(res, "Account does not exist", 404);
         }
@@ -422,7 +406,7 @@ One({ phone });
 //verify email
 const verifyEmail = async (req, res, next) => {
     try {
-        const { verificationToken } = req.params;
+        const { verificationToken } = req.body;
         const user = await User.findOne({
             verificationToken,
             verificationExpiry: { $gt: Date.now() },
