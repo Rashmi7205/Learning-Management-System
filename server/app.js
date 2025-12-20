@@ -3,6 +3,8 @@ import cors from 'cors'
 import express from 'express'
 import userRoutes from "./routes/user.routes.js";
 import errorMiddleWare from "./middlewares/error.midddleware.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./swagger.js";
 
 const app=express();
 
@@ -11,6 +13,9 @@ app.use(express.json());
 //     origin:[process.env.FRONTEND_URL],
 //     credentials:true
 // }));
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());/// parse token to json
