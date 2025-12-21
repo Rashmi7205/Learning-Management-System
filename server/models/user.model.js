@@ -163,7 +163,7 @@ const instructorSchema = new Schema(
         payoutDetails: Object,
 
         // Compliance
-        identityVerified: { type: Boolean, default: false },
+        identityVerified: { type: Boolean, default: false }, 
         taxId: String,
         agreementAcceptedAt: Date,
 
