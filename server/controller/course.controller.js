@@ -1,9 +1,10 @@
 import { Course } from "../models/course.model.js";
 import AppError from "../utils/user.error.js";
 import { isBlank } from "../utils/validate.js";
+import { ERROR_MESSAGES } from "../constants/index.js";
 
 // createCourse
-export const createCourse = async (req, res, next) => {
+const createCourse = async (req, res, next) => {
   try {
     const {
       title,
@@ -180,10 +181,45 @@ export const updateCourse = async (req, res, next) => {
   }
 };
 // updateCourse
+const updateCourse = async (req, res, next) => {
+  try {
+
+  } catch (error) {
+      return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+}
 // getCourseById
+const getCourseById = async (req, res, next) => {
+  try {
+
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+}
 // getCourses
+const getCourses = async (req, res, next) => {
+  try {
+
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+}
 // publishCourse
-// searchCourses
+const publishCourse = async (req, res, next) => {
+  try {
+
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+}
 // getFeaturedCourses
-// updateCoursePrice
-// archiveCourse
+const getFeaturedCourses = async (req, res, next) => {
+  try {
+
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+}
+// deleteCourse
+
+//update course c
