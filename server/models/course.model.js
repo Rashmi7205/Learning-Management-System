@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
 const courseSchema = new mongoose.Schema({
   // Basic
@@ -9,7 +9,10 @@ whatYouWillLearn: [String],
   requirements: [String],
 
   // Ownership
-  instructor: { type: ObjectId, ref: "Instructor" },
+  instructor: {
+    type: mongoose.Types.ObjectId,
+    ref: "Instructor",
+  },
 
   category: [String],
 
@@ -43,14 +46,19 @@ whatYouWillLearn: [String],
   // Marketing
   isFeatured: Boolean,
   bestseller: Boolean,
-  previewLectures: [ObjectId],
+  previewLectures: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Lecture",
+    },
+  ],
   // Admin
   isArchived: Boolean,
   archivedAt: Date,
 }, { timestamps: true });
 
 const sectionSchema = new mongoose.Schema({
-  course: { type: ObjectId, ref: "Course" },
+  course: { type: Schema.Types.ObjectId, ref: "Course" },
   title: String,
   description: String,
   order: Number,
@@ -60,7 +68,7 @@ const sectionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const lectureSchema = new mongoose.Schema({
-  section: { type: ObjectId, ref: "Section" },
+  section: { type: Schema.Types.ObjectId, ref: "Section" },
   title: String,
   description: String,
 
@@ -81,8 +89,8 @@ const lectureSchema = new mongoose.Schema({
 
 
 const enrollmentSchema = new mongoose.Schema({
-  user: { type: ObjectId, ref: "User" },
-  course: { type: ObjectId, ref: "Course" },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  course: { type: Schema.Types.ObjectId, ref: "Course" },
 
   enrolledAt: Date,
   expiresAt: Date,
@@ -96,8 +104,8 @@ const enrollmentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const reviewSchema = new mongoose.Schema({
-  user: { type: ObjectId, ref: "User" },
-  course: { type: ObjectId, ref: "Course" },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  course: { type: Schema.Types.ObjectId, ref: "Course" },
 
   rating: Number,
   title: String,
@@ -109,11 +117,11 @@ const reviewSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const progressSchema = new mongoose.Schema({
-  user: { type: ObjectId, ref: "User" },
-  course: { type: ObjectId, ref: "Course" },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  course: { type: Schema.Types.ObjectId, ref: "Course" },
 
-  completedLectures: [{ type: ObjectId, ref: "Lecture" }],
-  lastAccessedLecture: { type: ObjectId, ref: "Lecture" },
+  completedLectures: [{ type: Schema.Types.ObjectId, ref: "Lecture" }],
+  lastAccessedLecture: { type: Schema.Types.ObjectId, ref: "Lecture" },
 
   progressPercentage: Number,
   totalWatchTime: Number,
@@ -121,8 +129,8 @@ const progressSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const certificateSchema = new mongoose.Schema({
-  user: { type: ObjectId, ref: "User" },
-  course: { type: ObjectId, ref: "Course" },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  course: { type: Schema.Types.ObjectId, ref: "Course" },
 
   certificateId: String,
   certificateUrl: String,
