@@ -6,6 +6,7 @@ import errorMiddleWare from "./middlewares/error.midddleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger.js";
 import istRoutes from "./routes/instructor.routes.js";
+import courseRouter from "./routes/course.routes.js";
 
 const app=express();
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());/// parse token to json
 app.use('/api/auth',userRoutes);
 app.use('/api/instructors',istRoutes);
+app.use('/api/courses',courseRouter);
 
 app.get('/ping',(req,res)=>{
     res.send('/pong');
