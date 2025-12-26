@@ -9,8 +9,7 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/user.error.js";
 import generateOtp from "../utils/generateOtp.js";
 import sendSms from "../utils/sendSms.js";
-import { deleteImage, uploadImage } from "../services/cloudinary.js";
-import { error } from "console";
+import { deleteImage, uploadImage } from "../services/s3.js";
 
 
 const cookieOption = {
