@@ -92,10 +92,10 @@ const createCourse = async (req, res, next) => {
       subscriptionIncluded: subscriptionIncluded || false,
       status: status || "draft",
     });
-    return ApiResponse(res,{
-      statusCode:201,
-      message:"Course created sucessfully",
-      data:course
+    return ApiResponse(res, {
+      statusCode: 201,
+      message: "Course created sucessfully",
+      data: course,
     });
   } catch (error) {
     return next(AppError(error.message, 500));
@@ -177,7 +177,7 @@ const updateCourse = async (req, res, next) => {
     if (!course) {
       return next(AppError("Course not found", 404));
     }
-    return ApiResponse(res,{
+    return ApiResponse(res, {
       success: true,
       message: "Course updated successfully",
       data: course,
@@ -201,16 +201,16 @@ const getCourseById = async (req, res, next) => {
       {
         $match: {
           _id: courseObjectId,
-          isArchived: { $ne: true }
-        }
+          isArchived: { $ne: true },
+        },
       },
       {
         $lookup: {
           from: "instructors",
           localField: "instructor",
           foreignField: "_id",
-          as: "instructor"
-        }
+          as: "instructor",
+        },
       },
       { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
       {
@@ -218,25 +218,27 @@ const getCourseById = async (req, res, next) => {
           from: "users",
           localField: "instructor.user",
           foreignField: "_id",
-          as: "instructorUser"
-        }
+          as: "instructorUser",
+        },
       },
-      { $unwind: { path: "$instructorUser", preserveNullAndEmptyArrays: true } },
+      {
+        $unwind: { path: "$instructorUser", preserveNullAndEmptyArrays: true },
+      },
       {
         $lookup: {
           from: "reviews",
           localField: "_id",
           foreignField: "course",
-          as: "reviews"
-        }
+          as: "reviews",
+        },
       },
       {
         $addFields: {
           reviewCount: { $size: "$reviews" },
           averageRating: {
-            $ifNull: [{ $avg: "$reviews.rating" }, 0]
-          }
-        }
+            $ifNull: [{ $avg: "$reviews.rating" }, 0],
+          },
+        },
       },
       {
         $project: {
@@ -271,22 +273,22 @@ const getCourseById = async (req, res, next) => {
               _id: "$instructorUser._id",
               firstName: "$instructorUser.firstName",
               lastName: "$instructorUser.lastName",
-              avatar: "$instructorUser.avatar"
-            }
-          }
-        }
-      }
+              avatar: "$instructorUser.avatar",
+            },
+          },
+        },
+      },
     ]);
 
     return ApiResponse(res, {
       statusCode: 200,
       message: "Course Data fetched",
-      data: course
-    })
+      data: course,
+    });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 // getCourses
 const getCourses = async (req, res, next) => {
   try {
@@ -303,7 +305,7 @@ const getCourses = async (req, res, next) => {
       query.$or = [
         { title: { $regex: searchText, $options: "i" } },
         { subtitle: { $regex: searchText, $options: "i" } },
-        { description: { $regex: searchText, $options: "i" } }
+        { description: { $regex: searchText, $options: "i" } },
       ];
     }
 
@@ -317,44 +319,44 @@ const getCourses = async (req, res, next) => {
           from: "enrollments",
           localField: "_id",
           foreignField: "course",
-          as: "enrollments"
-        }
+          as: "enrollments",
+        },
       },
       {
         $lookup: {
           from: "reviews",
           localField: "_id",
           foreignField: "course",
-          as: "reviews"
-        }
+          as: "reviews",
+        },
       },
       {
         $lookup: {
           from: "instructors",
           localField: "instructor",
           foreignField: "_id",
-          as: "instructorData"
-        }
+          as: "instructorData",
+        },
       },
       {
         $unwind: {
           path: "$instructorData",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $lookup: {
           from: "users",
           localField: "instructorData.user",
           foreignField: "_id",
-          as: "instructorUser"
-        }
+          as: "instructorUser",
+        },
       },
       {
         $unwind: {
           path: "$instructorUser",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
 
       /* ---------------- COMPUTED FIELDS ---------------- */
@@ -369,27 +371,24 @@ const getCourses = async (req, res, next) => {
               $filter: {
                 input: "$enrollments",
                 as: "e",
-                cond: { $eq: ["$$e.isCompleted", true] }
-              }
-            }
+                cond: { $eq: ["$$e.isCompleted", true] },
+              },
+            },
           },
 
           approvedReviews: {
             $filter: {
               input: "$reviews",
               as: "r",
-              cond: { $eq: ["$$r.isApproved", true] }
-            }
-          }
-        }
+              cond: { $eq: ["$$r.isApproved", true] },
+            },
+          },
+        },
       },
       {
         $addFields: {
           averageRating: {
-            $ifNull: [
-              { $avg: "$approvedReviews.rating" },
-              0
-            ]
+            $ifNull: [{ $avg: "$approvedReviews.rating" }, 0],
           },
           completionRate: {
             $cond: {
@@ -397,13 +396,13 @@ const getCourses = async (req, res, next) => {
               then: {
                 $multiply: [
                   { $divide: ["$completedEnrollments", "$enrollmentCount"] },
-                  100
-                ]
+                  100,
+                ],
               },
-              else: 0
-            }
-          }
-        }
+              else: 0,
+            },
+          },
+        },
       },
 
       /* ---------------- PROJECTION ---------------- */
@@ -442,10 +441,10 @@ const getCourses = async (req, res, next) => {
             user: {
               firstName: "$instructorUser.firstName",
               lastName: "$instructorUser.lastName",
-              avatar: "$instructorUser.avatar"
-            }
-          }
-        }
+              avatar: "$instructorUser.avatar",
+            },
+          },
+        },
       },
 
       /* ---------------- SORT + PAGINATION ---------------- */
@@ -454,15 +453,10 @@ const getCourses = async (req, res, next) => {
 
       {
         $facet: {
-          data: [
-            { $skip: (pageNum - 1) * limitNum },
-            { $limit: limitNum }
-          ],
-          meta: [
-            { $count: "total" }
-          ]
-        }
-      }
+          data: [{ $skip: (pageNum - 1) * limitNum }, { $limit: limitNum }],
+          meta: [{ $count: "total" }],
+        },
+      },
     ]);
 
     const courses = courseStats[0].data;
@@ -475,15 +469,13 @@ const getCourses = async (req, res, next) => {
         total,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(total / limitNum)
-      }
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
-
-
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 //get Course By instructor
 const getCoursesByInstructor = async (req, res, next) => {
   try {
@@ -492,42 +484,49 @@ const getCoursesByInstructor = async (req, res, next) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Courses fetched successfully",
-      data: courses
+      data: courses,
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 // publishCourse
 const publishCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const course = await Course.findByIdAndUpdate(id, { status: "published", publishedAt: new Date() }, { new: true });
+    const course = await Course.findByIdAndUpdate(
+      id,
+      { status: "published", publishedAt: new Date() },
+      { new: true }
+    );
     if (!course) {
       return AppError(res, "Course not found", 404);
     }
     return ApiResponse(res, {
       statusCode: 200,
       message: "Course published successfully",
-      data: course
+      data: course,
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 // getFeaturedCourses
 const getFeaturedCourses = async (req, res, next) => {
   try {
-    const courses = await Course.find({ isFeatured: true, isArchived: { $ne: true } }).limit(10);
+    const courses = await Course.find({
+      isFeatured: true,
+      isArchived: { $ne: true },
+    }).limit(10);
     return ApiResponse(res, {
       statusCode: 200,
       message: "Featured courses fetched successfully",
-      data: courses
+      data: courses,
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 // TODO deleteCourse
 const deleteCourse = async (req, res, next) => {
   try {
@@ -551,22 +550,65 @@ const deleteCourse = async (req, res, next) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Course deleted successfully",
-      data: course
+      data: course,
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 
 // TODO : get courses by instructor
-
-
-
+const getCourseByInstructor = async (req, res, next) => {
+  try {
+    const { instructorId } = req.params;
+    const { status, page, limit, sort } = req.query;
+    const pageNum = parsInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const sortBy = sort || "newest";
+    const filter = {
+      instructor: instructorId,
+      isArchived: { $ne: true }, // Exclude archived courses
+    };
+    //  Authenticate and verify instructor role
+    if (status) {
+      filter.status = status;
+    }
+    let sortOption = {};
+    if (sortBy === "newest") {
+      sortOption = { createdAt: -1 };
+    } else if (sortBy === "oldest") {
+      sortOption = { createdAt: 1 };
+    } else if (sortBy === "popularity") {
+      sortOption = { enrollmentCount: -1 };
+    } else {
+      sortOption = { createdAt: -1 };
+    }
+    const courses = await Course.find(filter)
+      .sort(sortOption)
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+    const total = await Course.countDocuments(filter);
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Courses fetched successfully",
+      data: courses,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+};
 
 export {
   createCourse,
   getCourseById,
   getCourses,
   updateCourse,
-  deleteCourse
-}
+  deleteCourse,
+  getCourseByInstructor,
+};
