@@ -12,20 +12,26 @@ whatYouWillLearn: [String],
   instructor: {
     type: mongoose.Types.ObjectId,
     ref: "Instructor",
+    required:true
   },
 
   category: [String],
 
   // Media
-  thumbnail: String,
-  promoVideo: String,
+  thumbnail: {
+    publicId: String,
+    secureUrl: String,
+  },
+  promoVideo: {
+    publicId: String,
+    secureUrl: String,
+  },
 
   // Pricing
   price: Number,
   discountPrice: Number,
   currency: String,
   isFree: Boolean,
-  subscriptionIncluded: Boolean,
 
   // Content Stats
   totalSections: Number,
