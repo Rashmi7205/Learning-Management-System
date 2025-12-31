@@ -29,7 +29,6 @@ export const isInstructor = (req, res, next) => {
                 AppError(res, "Access denied. Instructor only.", 403)
             );
         }
-
         next();
     } catch (error) {
         return next(AppError(res, error.message, 500));

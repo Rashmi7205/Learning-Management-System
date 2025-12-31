@@ -11,7 +11,7 @@ import mime from "mime-types";
 
 dotenv.config();
 
-/* ================= CONFIG ================= */
+//s3 config
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -28,13 +28,13 @@ const generateKey = (folder, filePath) => {
   return `${folder}/${crypto.randomUUID()}${ext}`;
 };
 
-/* ================= IMAGE UPLOAD ================= */
+//IMAGE UPLOAD
 const uploadImage = async (filePath) => {
   if (!filePath) throw new Error("File path missing");
   if (!fs.existsSync(filePath)) throw new Error("File does not exist");
 
   const key = generateKey("images", filePath);
-  const contentType = mime.lookup(filePath); // ⭐ IMPORTANT
+  const contentType = mime.lookup(filePath);
 
   if (!contentType) throw new Error("Invalid image type");
 
@@ -44,7 +44,7 @@ const uploadImage = async (filePath) => {
         Bucket: BUCKET,
         Key: key,
         Body: fs.createReadStream(filePath),
-        ContentType: contentType // ✅ REAL MIME TYPE
+        ContentType: contentType
       })
     );
 
@@ -55,17 +55,18 @@ const uploadImage = async (filePath) => {
       secureUrl: `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
     };
   } catch (error) {
+    fs.rmSync(filePath);
     throw new Error(error.message);
   }
 };
 
-/* ================= VIDEO UPLOAD ================= */
+//VIDEO UPLOAD
 const uploadVideo = async (filePath) => {
   if (!filePath) throw new Error("File path missing");
   if (!fs.existsSync(filePath)) throw new Error("File does not exist");
 
   const key = generateKey("videos", filePath);
-  const contentType = mime.lookup(filePath); // ⭐ IMPORTANT
+  const contentType = mime.lookup(filePath);
 
   if (!contentType) throw new Error("Invalid video type");
 
@@ -75,7 +76,7 @@ const uploadVideo = async (filePath) => {
         Bucket: BUCKET,
         Key: key,
         Body: fs.createReadStream(filePath),
-        ContentType: contentType // ✅ video/mp4
+        ContentType: contentType
       })
     );
 
@@ -86,11 +87,12 @@ const uploadVideo = async (filePath) => {
       secureUrl: `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
     };
   } catch (error) {
+    fs.rmSync(filePath);
     throw new Error(error.message);
   }
 };
 
-/* ================= DELETE ================= */
+//Delete Image
 const deleteImage = async (publicId) => {
   if (!publicId) return false;
 

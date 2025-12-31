@@ -1,18 +1,35 @@
 import multer from "multer";
 import path from "path";
+import fs from 'fs';
 import { randomUUID } from "crypto";
+
+
+const ensureDirExists = (dirPath) => {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+};
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        let relativePath = "";
         if (file.fieldname === "thumbnail") {
-            cb(null, "uploads/thumbnails");
+            relativePath = "uploads/thumbnails";
         } else if (file.fieldname === "promoVideo") {
-            cb(null, "uploads/promo-videos");
+            relativePath = "uploads/promo-videos";
         } else if (file.fieldname === "avatar") {
-            cb(null, "uploads/avatars");
+            relativePath = "uploads/avatars";
+        } else if (file.fieldname === "lectureVideo") {
+            relativePath = "uploads/videos";
+        } else if (file.fieldname === "attachment") {
+            relativePath = "uploads/attachments";
         } else {
-            cb(new Error("Invalid field name"));
+            return cb(new Error("Invalid field name"));
         }
+
+        ensureDirExists(relativePath);
+
+        cb(null, relativePath);
     },
 
     filename: (req, file, cb) => {
@@ -31,14 +48,15 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    if (file.fieldname === "thumbnail" && file.mimetype.startsWith("image/")) {
-        cb(null, true);
-    } else if (
-        file.fieldname === "promoVideo" &&
-        file.mimetype.startsWith("video/")
-    ) {
-        cb(null, true);
-    } else if (file.fieldname === "avatar" && file.mimetype.startsWith("image/")) {
+    const allowed = {
+        thumbnail: ["image/jpeg", "image/png", "image/webp"],
+        avatar: ["image/jpeg", "image/png", "image/webp"],
+        promoVideo: ["video/mp4"],
+        lectureVideo: ["video/mp4"],
+        attachment: ["application/pdf"]
+    };
+
+    if (allowed[file.fieldname]?.includes(file.mimetype)) {
         cb(null, true);
     } else {
         cb(new Error("Invalid file type"), false);
@@ -48,7 +66,7 @@ const fileFilter = (req, file, cb) => {
     storage,
     fileFilter,
     limits: {
-        fileSize: 1024 * 1024 * 10,//10 mb max
+        fileSize: 1024 * 1024 * 20,//10 mb max
     },
 });
 export default upload;
