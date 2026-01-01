@@ -52,6 +52,7 @@ const uploadImage = async (filePath) => {
       secureUrl: `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
     };
   } catch (error) {
+    fs.rmSync(filePath);
     throw new Error(error.message);
   }
 };
@@ -61,7 +62,7 @@ const uploadVideo = async (filePath) => {
   if (!fs.existsSync(filePath)) throw new Error("File does not exist");
 
   const key = generateKey("videos", filePath);
-  const contentType = mime.lookup(filePath); // ⭐ IMPORTANT
+  const contentType = mime.lookup(filePath);
 
   if (!contentType) throw new Error("Invalid video type");
 
@@ -82,6 +83,7 @@ const uploadVideo = async (filePath) => {
       secureUrl: `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
     };
   } catch (error) {
+    fs.rmSync(filePath);
     throw new Error(error.message);
   }
 };

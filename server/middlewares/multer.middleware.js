@@ -1,11 +1,19 @@
 import multer from "multer";
 import path from "path";
+import fs from 'fs';
 import { randomUUID } from "crypto";
 import fs from "fs";
 
 const ensureDir = (dir) => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+    }
+};
+
+
+const ensureDirExists = (dirPath) => {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
     }
 };
 
