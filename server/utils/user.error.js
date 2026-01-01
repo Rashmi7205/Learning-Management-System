@@ -1,4 +1,4 @@
-const ApiError = (
+const AppError = (
     res,
     message = "Internal Server Error",
     statusCode = 500,
@@ -23,4 +23,4 @@ const ApiError = (
     return res.status(statusCode).json(response);
 };
 
-export default ApiError;
+export default AppError;
