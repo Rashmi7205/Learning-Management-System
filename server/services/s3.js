@@ -11,7 +11,6 @@ import mime from "mime-types";
 
 dotenv.config();
 
-//s3 config
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -22,13 +21,11 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.AWS_S3_BUCKET;
 
-/* ================= KEY GENERATOR ================= */
+
 const generateKey = (folder, filePath) => {
   const ext = path.extname(filePath);
   return `${folder}/${crypto.randomUUID()}${ext}`;
 };
-
-//IMAGE UPLOAD
 const uploadImage = async (filePath) => {
   if (!filePath) throw new Error("File path missing");
   if (!fs.existsSync(filePath)) throw new Error("File does not exist");
@@ -60,7 +57,6 @@ const uploadImage = async (filePath) => {
   }
 };
 
-//VIDEO UPLOAD
 const uploadVideo = async (filePath) => {
   if (!filePath) throw new Error("File path missing");
   if (!fs.existsSync(filePath)) throw new Error("File does not exist");
@@ -92,7 +88,6 @@ const uploadVideo = async (filePath) => {
   }
 };
 
-//Delete Image
 const deleteImage = async (publicId) => {
   if (!publicId) return false;
 

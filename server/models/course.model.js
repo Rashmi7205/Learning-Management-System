@@ -1,11 +1,10 @@
 import mongoose, { model, Schema } from "mongoose";
 
 const courseSchema = new mongoose.Schema({
-  // Basic
   title: String,
   subtitle: String,
   description: String,
-whatYouWillLearn: [String],
+  whatYouWillLearn: [String],
   requirements: [String],
 
   // Ownership
@@ -79,12 +78,19 @@ const lectureSchema = new mongoose.Schema({
   description: String,
 
   // Media
-  videoUrl: String,
+  videoUrl: {
+    publicId: String,
+    secureUrl: String,
+  },
   videoProvider: String,
   duration: Number,
 
   // Resources
-  attachments: [String],
+  attachments: [{
+    filename: String,
+    publicId: String,
+    url: String,
+  }],
 
   // Access
   isPreview: Boolean,
@@ -139,7 +145,10 @@ const certificateSchema = new mongoose.Schema({
   course: { type: Schema.Types.ObjectId, ref: "Course" },
 
   certificateId: String,
-  certificateUrl: String,
+  certificateUrl: {
+    publicId: String,
+    secureUrl: String,
+  },
   issuedAt: Date,
 }, { timestamps: true });
 
@@ -150,4 +159,4 @@ export const Lecture = model("lectures", lectureSchema);
 export const Enrollment = model("enrollments", enrollmentSchema);
 export const Review = model("reviews", reviewSchema);
 export const Progress = model("progresses", progressSchema);
-export const  Certificate = model("certificates", certificateSchema);
+export const Certificate = model("certificates", certificateSchema);
