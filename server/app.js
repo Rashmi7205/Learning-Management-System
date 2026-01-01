@@ -8,6 +8,7 @@ import { swaggerSpec } from "./swagger.js";
 import istRoutes from "./routes/instructor.routes.js";
 import courseRouter from "./routes/course.routes.js";
 import sectionRouter from "./routes/section.routes.js";
+import lectureRouter from "./routes/lecture.routes.js";
 
 const app=express();
 
@@ -26,6 +27,8 @@ app.use('/api/auth',userRoutes);
 app.use('/api/instructors',istRoutes);
 app.use('/api/courses',courseRouter);
 app.use('/api/courses/:courseId/sections',sectionRouter);
+app.use('/api/courses/:courseId/lectures',lectureRouter);
+
 
 app.get('/ping',(req,res)=>{
     res.send('/pong');

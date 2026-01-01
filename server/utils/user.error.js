@@ -1,3 +1,20 @@
+import fs from "fs";
+const cleanupFiles = (files = {}) => {
+    if (!files) return;
+    Object.values(files).forEach(fileArray => {
+        if (Array.isArray(fileArray)) {
+            fileArray.forEach(file => {
+                try {
+                    if (file?.path && fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                } catch (err) {
+                    console.error("File cleanup failed:", err.message);
+                }
+            });
+        }
+    });
+};
 const AppError = (
     res,
     message = "Internal Server Error",

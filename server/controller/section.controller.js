@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import ApiResponse from "../utils/apiResponse.js";
 import AppError from "../utils/user.error.js";
-import { Course, Section } from "../models/course.model.js";
-import { Instructor } from "../models/instructor.model.js";
-import { Enrollment } from "../models/enrollment.model.js";
+import { Course, Section, Enrollment, Lecture } from "../models/course.model.js";
+import { Instructor } from "../models/user.model.js";
+import { isBlank } from "../utils/validate.js";
+import ApiResponse from "../utils/ApiResponse.js";
 
 
 export const incrementSectionCount = async (courseId, value = 1) => {
@@ -18,7 +18,7 @@ export const createSection = async (req, res) => {
   try {
     const { id } = req.user;
     const { courseId } = req.params;
-    const { title, description, order } = req.body;
+    const { title, description,order} = req.body;
 
     if (!title) {
       return AppError(res, "Section title is required", 400);
@@ -112,78 +112,11 @@ export const deleteSection = async (req, res) => {
   }
 };
 
-export const getCourseSections = async (req, res) => {
-  try {
-    const { courseId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return AppError(res, "Invalid course id", 400);
-    }
-
-    const course = await Course.findById(courseId).select(
-      "_id status instructor isFree"
-    );
-
-    if (!course) {
-      return AppError(res, "Course not found", 404);
-    }
-
-    let isEnrolled = false;
-
-    if (userId) {
-      const enrollment = await Enrollment.findOne({
-        course: courseId,
-        user: userId,
-        status: "active"
-      });
-      isEnrolled = !!enrollment;
-    }
-
-    let sections = await Section.find({ course: courseId })
-      .sort({ order: 1 })
-      .lean();
-
-    const sectionIds = sections.map(s => s._id);
-
-    const lectureCounts = await Lecture.aggregate([
-      { $match: { section: { $in: sectionIds } } },
-      { $group: { _id: "$section", count: { $sum: 1 } } }
-    ]);
-
-    const lectureCountMap = {};
-    lectureCounts.forEach(lc => {
-      lectureCountMap[lc._id.toString()] = lc.count;
-    });
-
-    sections = sections.map(section => ({
-      ...section,
-      totalLectures: lectureCountMap[section._id.toString()] || 0
-    }));
-
-    if (!isEnrolled) {
-      sections = sections.filter(section => section.isFreePreview === true);
-    }
-
-    return ApiResponse(res, {
-      statusCode: 200,
-      message: "Course sections fetched successfully",
-      data: {
-        courseId,
-        isEnrolled,
-        totalSections: sections.length,
-        sections
-      }
-    });
-
-  } catch (error) {
-    return AppError(res, error.message, 500);
-  }
-};
-
 export const updateSection = async (req, res) => {
   try {
     const { id: userId } = req.user;
     const { sectionId } = req.params;
+
 
     if (!userId) {
       return AppError(res, "Unauthorized", 401);
@@ -233,6 +166,7 @@ export const updateSection = async (req, res) => {
     });
 
   } catch (error) {
+    console.log(error);
     return AppError(res, error.message, 500);
   }
 };
@@ -324,6 +258,62 @@ export const reorderSections = async (req, res) => {
       statusCode: 200,
       message: "Sections reordered successfully",
       data: updatedSections
+    });
+
+  } catch (error) {
+    return AppError(res, error.message, 500);
+  }
+};
+export const getCourseSections = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return AppError(res, "Invalid course id", 400);
+    }
+
+    const course = await Course.findById(courseId).select(
+      "_id status instructor isFree"
+    );
+
+    if (!course) {
+      return AppError(res, "Course not found", 404);
+    }
+
+    let isEnrolled = false;
+
+    let sections = await Section.find({ course: courseId })
+      .sort({ order: 1 })
+      .lean();
+
+
+
+    const sectionIds = sections.map(s => s._id);
+
+    const lectureCounts = await Lecture.aggregate([
+      { $match: { section: { $in: sectionIds } } },
+      { $group: { _id: "$section", count: { $sum: 1 } } }
+    ]);
+
+    const lectureCountMap = {};
+    lectureCounts.forEach(lc => {
+      lectureCountMap[lc._id.toString()] = lc.count;
+    });
+
+    sections = sections.map(section => ({
+      ...section,
+      totalLectures: lectureCountMap[section._id.toString()] || 0
+    }));
+
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Course sections fetched successfully",
+      data: {
+        courseId,
+        isEnrolled,
+        totalSections: sections.length,
+        sections
+      }
     });
 
   } catch (error) {

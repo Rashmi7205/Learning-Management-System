@@ -1,11 +1,9 @@
 import mongoose from "mongoose";
-import Lecture from "../models/lecture.model.js";
-import Section from "../models/section.model.js";
-import Course from "../models/course.model.js";
-import Instructor from "../models/instructor.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import AppError from "../utils/user.error.js";
-import { uploadVideo } from "../services/s3.js";
+import { deleteVideo, uploadVideo } from "../services/s3.js";
+import { Lecture, Section } from "../models/course.model.js";
+import { Instructor } from "../models/user.model.js";
 
 export const createLecture = async (req, res) => {
   try {
@@ -175,6 +173,7 @@ export const updateLecture = async (req, res) => {
       isDownloadable
     } = req.body;
 
+
     if (title !== undefined && !title.trim()) {
       return AppError(res, "Lecture title cannot be empty", 400);
     }
@@ -183,7 +182,7 @@ export const updateLecture = async (req, res) => {
       return AppError(res, "Duration must be greater than 0", 400);
     }
 
-    const allowedProviders = ["youtube", "vimeo", "s3"];
+    const allowedProviders = ["youtube", "s3"];
     if (
       videoProvider !== undefined &&
       !allowedProviders.includes(videoProvider)
@@ -250,6 +249,14 @@ export const deleteLecture = async (req, res) => {
           select: "_id instructor totalLectures totalDuration"
         }
       });
+    if( lecture.videoProvider === "s3" && lecture.videoUrl){
+      const publicId = lecture.videoUrl.publicId;
+      await deleteVideo(publicId);
+    }
+    if(lecture.videoProvider === "youtube" && lecture.videoUrl){
+      lecture.videoUrl = "";
+    }
+    await lecture.save();
 
     if (!lecture) {
       return AppError(res, "Lecture not found", 404);
@@ -304,12 +311,12 @@ export const uploadLectureVideo = async (req, res) => {
     const userId = req.user?.id;
 
     if (!mongoose.Types.ObjectId.isValid(lectureId)) {
-      return AppError(res, "Invalid lecture ID", 400);
+      return AppError(res, "Invalid lecture ID", 400,req.file);
     }
 
     const instructor = await Instructor.findOne({ user: userId });
     if (!instructor) {
-      return AppError(res, "Instructor not found", 403);
+      return AppError(res, "Instructor not found", 403,req.file);
     }
 
 
@@ -322,21 +329,41 @@ export const uploadLectureVideo = async (req, res) => {
     });
 
     if (!lecture) {
-      return AppError(res, "Lecture not found", 404);
+      return AppError(res, "Lecture not found", 404,req.file);
     }
 
     const section = lecture.section;
     const course = section.course;
 
     if (course.instructor.toString() !== instructor._id.toString()) {
-      return AppError(res, "Unauthorized access", 403);
+      return AppError(res, "Unauthorized access", 403,req.file);
+    }
+    const {videoUrl, videoProvider="youtube"} = req.body;
+    if(videoUrl && videoProvider === "youtube"){
+        lecture.videoUrl = videoUrl;
+        lecture.videoProvider = videoProvider;
+        await lecture.save();
+        return ApiResponse(res, {
+          statusCode: 200,
+          message: "Lecture video URL updated successfully",
+          data: {
+            videoUrl: lecture.videoUrl,
+            duration: lecture.duration,
+            provider: lecture.videoProvider,
+          },
+        });
     }
 
     if (!req.file) {
-      return AppError(res, "No video file uploaded", 400);
+      return AppError(res, "No video file uploaded", 400,req.file);
     }
     if(req.file){
         try {
+          //if already video present delete the old one
+          if( lecture.videoProvider === "s3" && lecture.videoUrl){
+            const publicId = lecture.videoUrl.publicId;
+            await deleteVideo(publicId);
+          }
           const {publicId, secureUrl} = await uploadVideo(req.file.path);
           uploadedVideo = { publicId, secureUrl };
         } catch (error) {
@@ -347,7 +374,7 @@ export const uploadLectureVideo = async (req, res) => {
     const newDuration = Number(req.body.duration);
     if (!newDuration || newDuration <= 0) {
       await deleteVideo(uploadedVideo.publicId);
-      return AppError(res, "Invalid video duration", 400);
+      return AppError(res, "Invalid video duration", 400,req.file);
     }
 
     const oldDuration = lecture.duration || 0;
@@ -375,16 +402,10 @@ export const uploadLectureVideo = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
 
     if (uploadedVideo?.publicId) {
       await deleteVideo(uploadedVideo.publicId);
     }
-
-    if (req.file?.path) {
-      fs.existsSync(req.file.path) && fs.rmSync(req.file.path);
-    }
-
-    return AppError(res, "Video upload failed", 500);
+    return AppError(res, "Video upload failed", 500,req.file);
   }
 };

@@ -11,7 +11,7 @@ const courseSchema = new mongoose.Schema({
   instructor: {
     type: mongoose.Types.ObjectId,
     ref: "Instructor",
-    required:true
+    required: true
   },
 
   category: [String],
@@ -63,7 +63,7 @@ const courseSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const sectionSchema = new mongoose.Schema({
-  course: { type: Schema.Types.ObjectId, ref: "Course" },
+  course: { type: Schema.Types.ObjectId, ref: "Course", required: true },
   title: String,
   description: String,
   order: Number,
@@ -153,10 +153,12 @@ const certificateSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-export const Course = model("courses", courseSchema);
-export const Section = model("section", sectionSchema);
-export const Lecture = model("lectures", lectureSchema);
-export const Enrollment = model("enrollments", enrollmentSchema);
-export const Review = model("reviews", reviewSchema);
-export const Progress = model("progresses", progressSchema);
-export const Certificate = model("certificates", certificateSchema);
+const Course = mongoose.models.Course || mongoose.model("Course", courseSchema);
+const Section = mongoose.models.Section || mongoose.model("Section", sectionSchema);
+const Enrollment = mongoose.models.Enrollment || mongoose.model("Enrollment", enrollmentSchema);
+const Lecture = mongoose.models.Lecture || mongoose.model("Lecture", lectureSchema);
+
+const Review = mongoose.models.Review || mongoose.model("reviews", reviewSchema);
+const Progress = mongoose.models.Progress || mongoose.model("progresses", progressSchema);
+const Certificate = mongoose.models.Certificate || mongoose.model("certificates", certificateSchema);
+export { Course, Section, Enrollment, Lecture, Review, Progress, Certificate };
