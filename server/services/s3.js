@@ -101,11 +101,42 @@ const deleteImage = async (publicId) => {
   return true;
 };
 
+const uploadAttachment = async (filePath) => {
+  if (!filePath) throw new Error("File path missing");
+  if (!fs.existsSync(filePath)) throw new Error("File does not exist");
+  const key = generateKey("attachments", filePath);
+  const contentType = mime.lookup(filePath);
+  if (!contentType) throw new Error("Invalid attachment type");
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body:
+          fs.createReadStream(filePath),
+        ContentType: contentType
+      })
+    );
+
+    fs.rmSync(filePath);
+    return {
+      publicId: key,
+      secureUrl: `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
+    };
+  } catch (error) {
+    fs.rmSync(filePath);
+    throw new Error(error.message);
+  }
+};
+
+const deleteAttachment = deleteImage;
 const deleteVideo = deleteImage;
 
 export {
   uploadImage,
   uploadVideo,
   deleteImage,
-  deleteVideo
+  deleteVideo,
+  uploadAttachment,
+  deleteAttachment
 };

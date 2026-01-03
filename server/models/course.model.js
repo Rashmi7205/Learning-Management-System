@@ -89,7 +89,7 @@ const lectureSchema = new mongoose.Schema({
   attachments: [{
     filename: String,
     publicId: String,
-    url: String,
+    secureUrl: String,
   }],
 
   // Access
