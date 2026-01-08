@@ -10,6 +10,7 @@ import ApiError from "../utils/user.error.js";
 import generateOtp from "../utils/generateOtp.js";
 import sendSms from "../utils/sendSms.js";
 import { deleteImage, uploadImage } from "../services/s3.js";
+import Order from "../models/order.model.js";
 
 
 const cookieOption = {
@@ -195,7 +196,6 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-
 const resetPassword = async (req, res, next) => {
     try {
         const { resetToken } = req.params;
@@ -270,7 +270,6 @@ const changePassword = async (req, res, next) => {
         return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
     }
 };
-
 
 const updateProfile = async (req, res, next) => {
     try {
@@ -427,7 +426,6 @@ const verifyEmail = async (req, res, next) => {
     }
 };
 
-
 //verify phone
 const verifyPhone = async (req, res, next) => {
     try {
@@ -452,6 +450,48 @@ const verifyPhone = async (req, res, next) => {
         return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
     }
 };
+
+//get user orders
+export const getUserOrders = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { status, page = 1, limit = 10 } = req.query;
+
+        const filter = { user: userId };
+
+        if (status) {
+            filter.status = status;
+        }
+
+        const skip = (page - 1) * limit;
+
+        const orders = await Order.find(filter)
+            .populate("course", "title thumbnail")
+            .populate({
+                path: "payment",
+                select: "provider status paymentMethod amount",
+            })
+            .sort("-createdAt")
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Order.countDocuments(filter);
+
+        return ApiResponse(res, {
+            statusCode: 200,
+            data: orders,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(total / limit),
+                totalOrders: total,
+            },
+        });
+    } catch (error) {
+        console.error("Get user orders error:", error);
+        return AppError(res, "Failed to fetch orders", 500);
+    }
+};
+
 
 export {
     register,

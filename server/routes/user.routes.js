@@ -11,7 +11,8 @@ import {
   sendEmailOtp,
   sendPhoneOtp,
   verifyEmail,
-  verifyPhone
+  verifyPhone,
+  getUserOrders
 } from "../controller/user.controller.js";
 import isLoggedIn from "../middlewares/auth.user.js";
 import upload from "../middlewares/multer.middleware.js";
@@ -331,5 +332,7 @@ router.post("/verify-email", isLoggedIn, verifyEmail);
  *         description: Phone verified
  */
 router.post("/verify-phone", isLoggedIn, verifyPhone);
+
+router.get("/orders", isLoggedIn, getUserOrders);
 
 export default router;

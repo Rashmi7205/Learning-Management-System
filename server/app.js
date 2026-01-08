@@ -9,26 +9,30 @@ import istRoutes from "./routes/instructor.routes.js";
 import courseRouter from "./routes/course.routes.js";
 import sectionRouter from "./routes/section.routes.js";
 import lectureRouter from "./routes/lecture.routes.js";
+import paymentRouter from "./routes/payment.routes.js";
 
 const app=express();
 
 app.use(express.json());
-// app.use(cors({
-//     origin:[process.env.FRONTEND_URL],
-//     credentials:true
-// }));
-
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-
 app.use(express.urlencoded({extended:true}));
-app.use(cookieParser());/// parse token to json
+app.use(cookieParser());
+
+
+// app.use(cors({
+//     origin: ["http://127.0.0.1:5500", "http://localhost:5500"],
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"]
+// }));
+
 app.use('/api/auth',userRoutes);
 app.use('/api/instructors',istRoutes);
 app.use('/api/courses',courseRouter);
 app.use('/api/courses/:courseId/sections',sectionRouter);
 app.use('/api/courses/:courseId/lectures',lectureRouter);
-
+app.use('/api/payments',paymentRouter);
 
 app.get('/ping',(req,res)=>{
     res.send('/pong');
