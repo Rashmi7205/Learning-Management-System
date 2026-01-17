@@ -13,7 +13,7 @@ courseRouter.post("/", isLoggedIn, isInstructor,
   ),
   createCourse);
 //   getCourses
-courseRouter.get("/",isLoggedIn,getCourses);
+courseRouter.get("/",getCourses);
 //   updateCourse,
 courseRouter.put("/:courseId", isLoggedIn, isAdminOrInstructor, upload.fields([
   { name: "thumbnail", maxCount: 1 },

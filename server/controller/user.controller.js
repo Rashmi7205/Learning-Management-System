@@ -14,9 +14,11 @@ import Order from "../models/order.model.js";
 
 
 const cookieOption = {
-    maxAge: 7 * 24 * 60 * 60 * 1000,/// 7 days
-    httpOnly: true
-}
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax"
+};
 
 const register = async (req, res, next) => {
     const { firstName, lastName, email, password } = req.body;
