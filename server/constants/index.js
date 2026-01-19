@@ -152,18 +152,17 @@ export const REGEX = Object.freeze({
 ========================= */
 
 export const ERROR_MESSAGES = Object.freeze({
-
   /* =========================
      COMMON / SYSTEM
   ========================= */
-
+  INVALID_EMAIL: "Invalid email format",
   INVALID_OBJECT_ID: "Invalid ID format",
   REQUIRED_FIELD: "Required field is missing",
   INVALID_DATA_TYPE: "Invalid data type",
   NOT_FOUND: "Resource not found",
   ALREADY_EXISTS: "Resource already exists",
   OPERATION_FAILED: "Internal Server Error",
-  INCORRECT_PASS_OR_USERNAME:"Invalid credentials",
+  INCORRECT_PASS_OR_USERNAME: "Invalid credentials",
 
   UNAUTHORIZED: "You are not authorized to perform this action",
   FORBIDDEN: "Access forbidden",
@@ -181,8 +180,7 @@ export const ERROR_MESSAGES = Object.freeze({
   COURSE_LEARNING_OUTCOMES_REQUIRED:
     "At least one learning outcome is required",
 
-  COURSE_REQUIREMENTS_REQUIRED:
-    "At least one course requirement is required",
+  COURSE_REQUIREMENTS_REQUIRED: "At least one course requirement is required",
 
   COURSE_CATEGORY_REQUIRED: "At least one category is required",
 
@@ -243,30 +241,25 @@ export const ERROR_MESSAGES = Object.freeze({
 
   INVALID_RATING: "Rating must be between 1 and 5",
   REVIEW_TITLE_LENGTH: "Review title length is invalid",
-  REVIEW_COMMENT_LENGTH:
-    "Review comment must be within allowed length",
+  REVIEW_COMMENT_LENGTH: "Review comment must be within allowed length",
 
-  REVIEW_NOT_APPROVED:
-    "Review is pending approval by admin",
+  REVIEW_NOT_APPROVED: "Review is pending approval by admin",
 
   /* =========================
      PROGRESS VALIDATIONS
   ========================= */
 
   PROGRESS_NOT_FOUND: "Progress record not found",
-  INVALID_PROGRESS_PERCENTAGE:
-    "Progress percentage must be between 0 and 100",
+  INVALID_PROGRESS_PERCENTAGE: "Progress percentage must be between 0 and 100",
 
-  INVALID_LECTURE_PROGRESS:
-    "Lecture progress data is invalid",
+  INVALID_LECTURE_PROGRESS: "Lecture progress data is invalid",
 
   /* =========================
      CERTIFICATE VALIDATIONS
   ========================= */
 
   CERTIFICATE_NOT_FOUND: "Certificate not found",
-  CERTIFICATE_ALREADY_ISSUED:
-    "Certificate already issued for this course",
+  CERTIFICATE_ALREADY_ISSUED: "Certificate already issued for this course",
 
   CERTIFICATE_NOT_ELIGIBLE:
     "Course completion required to generate certificate",
@@ -283,10 +276,8 @@ export const ERROR_MESSAGES = Object.freeze({
      PUBLISHING & WORKFLOW
   ========================= */
 
-  COURSE_NOT_READY_FOR_PUBLISH:
-    "Course is not ready for publishing",
-  COURSE_REJECTED:
-    "Course has been rejected by admin",
+  COURSE_NOT_READY_FOR_PUBLISH: "Course is not ready for publishing",
+  COURSE_REJECTED: "Course has been rejected by admin",
 
   /* =========================
      SEARCH / FILTER
