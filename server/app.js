@@ -20,12 +20,12 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 
 
-// app.use(cors({
-//     origin: ["http://127.0.0.1:5500", "http://localhost:5500"],
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"]
-// }));
+app.use(cors({
+    origin: ["http://127.0.0.1:5500", "http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use('/api/auth',userRoutes);
 app.use('/api/instructors',istRoutes);

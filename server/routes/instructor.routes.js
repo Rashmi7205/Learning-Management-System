@@ -10,7 +10,7 @@ import {
 
 const istRoutes = Router();
 
-istRoutes.post("/",isLoggedIn,isAdmin,createInstructorProfile);
+istRoutes.post("/",isLoggedIn,createInstructorProfile);
 istRoutes.get("/profile",isLoggedIn,isAdminOrInstructor,getMyInstructorProfile);
 istRoutes.put("/me",isLoggedIn,isAdminOrInstructor,updateInstructorProfile);
 

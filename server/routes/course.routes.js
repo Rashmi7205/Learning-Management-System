@@ -33,7 +33,7 @@ courseRouter.post(
   createCourse
 );
 //   getCourses
-courseRouter.get("/", isLoggedIn, getCourses);
+courseRouter.get("/", getCourses);
 //   updateCourse,
 courseRouter.put(
   "/:courseId",
