@@ -9,6 +9,7 @@ import { MyCourseGrid } from "@/components/dashboard/my-courses-grid";
 import { OrderHistory } from "@/components/dashboard/order-history";
 import { Recommendations } from "@/components/dashboard/recommendations";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
+import {Loader} from '@/components/ui/loader'
 import {
   Course,
   Enrollment,
@@ -17,7 +18,6 @@ import {
   Order,
 } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Loader from "@/components/ui/loader";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";

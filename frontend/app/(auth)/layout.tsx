@@ -150,7 +150,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           <Input
             id={id}
             type={showPassword ? "text" : "password"}
-            className={cn("pe-10", className)}
+            className={cn("pe-10 text-foreground bg-foreground", className)}
             ref={ref}
             {...props}
           />
@@ -272,7 +272,7 @@ function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
-            className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 bg-a"
+            className=" placeholder-gray-500"
           />
         </div>
         <PasswordInput
@@ -284,7 +284,7 @@ function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
-          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+          className=" placeholder-gray-500"
         />
         {error && (
           <div className="p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { CourseCard } from "@/components/ui/course-card";
+import { CourseCard } from "@/components/course-card";
 import { Course, Enrollment, Certificate } from "@/lib/types";
 
 interface MyCourseGridProps {

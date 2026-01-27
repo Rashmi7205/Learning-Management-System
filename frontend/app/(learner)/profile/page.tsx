@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ClassicLoader from "@/components/ui/loader";
+import {Loader} from "@/components/ui/loader";
 import {
   AlertCircle,
   CheckCircle,
@@ -66,7 +66,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <ClassicLoader />
+          <Loader />
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>

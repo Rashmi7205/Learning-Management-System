@@ -1,138 +1,188 @@
-import { Card } from "@/components/ui/card";
+"use client";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { CourseCard } from "@/components/course-card";
 
-export default function InstructorCoursesPage() {
-  const courses = [
-    {
-      id: 1,
-      title: "React Fundamentals",
-      students: 142,
-      modules: 8,
-      status: "Published",
-      rating: 4.9,
-      revenue: "$2,130",
+const mockCourses = [
+  {
+    _id: "course1",
+    title: "Full Web Designing Course With 10+",
+    subtitle: "Learn complete web design from scratch",
+    thumbnail: {
+      publicId: "course1-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop",
     },
-    {
-      id: 2,
-      title: "Advanced TypeScript",
-      students: 89,
-      modules: 6,
-      status: "Published",
-      rating: 4.7,
-      revenue: "$1,335",
+    totalLectures: 4,
+    totalDuration: 300,
+    price: 49.99,
+    discountPrice: 29.99,
+    isFree: false,
+    currency: "USD",
+    rating: 5.0,
+    totalReviews: 1,
+    bestseller: false,
+    instructor: "instructor1",
+  },
+  {
+    _id: "course2",
+    title: "Learn 3D Modelling and design Beginners",
+    subtitle: "3D art and design comprehensive guide",
+    thumbnail: {
+      publicId: "course2-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1618183479302-1461ae109845?w=500&h=300&fit=crop",
     },
-    {
-      id: 3,
-      title: "Next.js Mastery",
-      students: 111,
-      modules: 10,
-      status: "Published",
-      rating: 4.8,
-      revenue: "$1,665",
+    totalLectures: 4,
+    totalDuration: 120,
+    price: 39.99,
+    discountPrice: 19.99,
+    isFree: false,
+    currency: "USD",
+    rating: 5.0,
+    totalReviews: 1,
+    bestseller: false,
+    instructor: "instructor2",
+  },
+  {
+    _id: "course3",
+    title: "Taboos about Gym you should Share.",
+    subtitle: "Fitness and gym training essentials",
+    thumbnail: {
+      publicId: "course3-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&h=300&fit=crop",
     },
-    {
-      id: 4,
-      title: "Web Design Principles",
-      students: 0,
-      modules: 5,
-      status: "Draft",
-      rating: 0,
-      revenue: "$0",
+    totalLectures: 4,
+    totalDuration: 180,
+    price: 29.99,
+    isFree: true,
+    currency: "USD",
+    rating: 5.0,
+    totalReviews: 1,
+    bestseller: false,
+    instructor: "instructor3",
+  },
+  {
+    _id: "course4",
+    title: "JavaScript Mastery",
+    subtitle: "Complete JavaScript guide from zero to hero",
+    thumbnail: {
+      publicId: "course4-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop",
     },
-  ];
+    totalLectures: 80,
+    totalDuration: 1200,
+    price: 34.99,
+    discountPrice: 14.99,
+    isFree: false,
+    currency: "USD",
+    rating: 4.9,
+    totalReviews: 2840,
+    bestseller: true,
+    instructor: "instructor4",
+  },
+  {
+    _id: "course5",
+    title: "CSS Grid & Flexbox Mastery",
+    subtitle: "Master modern CSS layouts",
+    thumbnail: {
+      publicId: "course5-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop",
+    },
+    totalLectures: 42,
+    totalDuration: 600,
+    price: 29.99,
+    discountPrice: 9.99,
+    isFree: false,
+    currency: "USD",
+    rating: 4.8,
+    totalReviews: 1920,
+    bestseller: true,
+    instructor: "instructor5",
+  },
+  {
+    _id: "course6",
+    title: "React Advanced Patterns",
+    subtitle: "Advanced React concepts and patterns",
+    thumbnail: {
+      publicId: "course6-thumb",
+      secureUrl:
+        "https://images.unsplash.com/photo-1633356122544-f134324ef6db?w=500&h=300&fit=crop",
+    },
+    totalLectures: 56,
+    totalDuration: 840,
+    price: 44.99,
+    discountPrice: 24.99,
+    isFree: false,
+    currency: "USD",
+    rating: 4.85,
+    totalReviews: 1650,
+    bestseller: false,
+    instructor: "instructor6",
+  },
+];
 
+const instructorMap = {
+  instructor1: {
+    name: "Millar Richard",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Millar",
+  },
+  instructor2: {
+    name: "John Travolta",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+  },
+  instructor3: {
+    name: "Penelope Cruz",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Penelope",
+  },
+  instructor4: {
+    name: "Sarah Johnson",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+  },
+  instructor5: {
+    name: "Mike Chen",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
+  },
+  instructor6: {
+    name: "Lisa Anderson",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa",
+  },
+};
+
+export default function CoursesPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="h-full">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Courses</h1>
-          <p className="text-gray-600 mt-2">Manage and edit your courses.</p>
+          <h1 className="text-3xl font-bold text-foreground">Courses</h1>
+          <p className="text-muted-foreground mt-2">
+            Browse and manage all available courses
+          </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">+ New Course</Button>
+        <Link href="/instructor/courses/builder">
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Course
+          </Button>
+        </Link>
       </div>
 
-      {/* Courses Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Course Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Students
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Modules
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Rating
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Revenue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {courses.map((course) => (
-                <tr
-                  key={course.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{course.title}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {course.students}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {course.modules}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    {course.rating > 0 ? (
-                      <span className="text-yellow-500 font-semibold">
-                        {course.rating}★
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                    {course.revenue}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        course.status === "Published"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {course.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm space-x-2">
-                    <button className="text-blue-600 hover:text-blue-700 font-medium">
-                      Edit
-                    </button>
-                    <span className="text-gray-300">|</span>
-                    <button className="text-red-600 hover:text-red-700 font-medium">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      {/* Courses Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockCourses.map((course) => (
+          <CourseCard
+            key={course._id}
+            course={course}
+            instructorInfo={
+              instructorMap[course.instructor as keyof typeof instructorMap]
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }

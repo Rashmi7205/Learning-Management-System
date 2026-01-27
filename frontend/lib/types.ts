@@ -33,7 +33,19 @@ export interface User {
 
 export interface Instructor {
   _id: string;
-  user: string;
+  user: {
+    avatar?: {
+      publicId?: string;
+      secureUrl?: string;
+    };
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    bio: string;
+    phone: string;
+    office: string;
+  };
   title?: string;
   expertise: string[];
   yearsOfExperience?: number;

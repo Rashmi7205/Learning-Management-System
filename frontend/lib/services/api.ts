@@ -287,6 +287,10 @@ export const certificateService = {
 
 // INSTRUCTOR API
 export const instructorService = {
+  getProfileData : async ()=>{
+     const response = await apiClient.get("/instructors/");
+    return response.data;
+  },
   getDashboard: async () => {
     const response = await apiClient.get("/instructors/dashboard");
     return response.data;
