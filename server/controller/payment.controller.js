@@ -16,62 +16,92 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-export const createOrder = async (req, res) => {
+export const createOrderAndInitializePayment = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const { courseIds } = req.body; // Array of course IDs
     const userId = req.user.id;
 
-    // Validate course ID
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return AppError(res, "Invalid course ID", 400);
+    // Validate input
+    if (!Array.isArray(courseIds) || courseIds.length === 0) {
+      return AppError(res, "Please provide at least one course", 400);
     }
 
-    // Fetch course
-    const course = await Course.findById(courseId)
+    // Validate all course IDs
+    const invalidIds = courseIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+    if (invalidIds.length > 0) {
+      return AppError(res, "Invalid course ID(s) provided", 400);
+    }
+
+    // Fetch all courses
+    const courses = await Course.find({
+      _id: { $in: courseIds },
+      status: "published"
+    })
       .populate("instructor", "user")
       .select("title price discountPrice isFree status instructor");
 
-    if (!course) {
-      return AppError(res, "Course not found", 404);
+    if (courses.length === 0) {
+      return AppError(res, "No valid courses found", 404);
     }
 
-    // Check if course is published
-    if (course.status !== "published") {
-      return AppError(res, "Course is not available for purchase", 400);
+    if (courses.length !== courseIds.length) {
+      return AppError(res, "Some courses are not available", 400);
     }
 
-    // Check if course is free
-    if (course.isFree) {
-      return AppError(res, "This is a free course, no payment required", 400);
+    // Check for free courses
+    const freeCourses = courses.filter(course => course.isFree);
+    if (freeCourses.length > 0) {
+      return AppError(
+        res,
+        `Cannot purchase free courses: ${freeCourses.map(c => c.title).join(", ")}`,
+        400
+      );
     }
 
-    // Check if user already enrolled
-    const existingEnrollment = await Enrollment.findOne({
+    // Check existing enrollments
+    const existingEnrollments = await Enrollment.find({
       user: userId,
-      course: courseId,
-    });
+      course: { $in: courseIds }
+    }).select("course");
 
-    if (existingEnrollment) {
-      return AppError(res, "You are already enrolled in this course", 400);
+    if (existingEnrollments.length > 0) {
+      const enrolledCourseIds = existingEnrollments.map(e => e.course.toString());
+      const enrolledCourses = courses
+        .filter(c => enrolledCourseIds.includes(c._id.toString()))
+        .map(c => c.title);
+
+      return AppError(
+        res,
+        `Already enrolled in: ${enrolledCourses.join(", ")}`,
+        400
+      );
     }
 
-    // Check for pending/paid orders
-    const existingOrder = await Order.findOne({
+    // Check for existing pending/paid orders
+    const existingOrders = await Order.find({
       user: userId,
-      course: courseId,
-      status: { $in: ["pending", "paid"] },
-    });
+      status: { $in: ["pending", "processing", "paid"] }
+    }).populate("items.course", "title");
 
-    if (existingOrder) {
-      if (existingOrder.status === "paid") {
-        return AppError(res, "You have already purchased this course", 400);
-      }
-      // Return existing pending order
-      return ApiResponse(res, {
-        statusCode: 200,
-        message: "Pending order found",
-        data: existingOrder,
+    const existingCourseIds = new Set();
+    existingOrders.forEach(order => {
+      order.items.forEach(item => {
+        if (courseIds.includes(item.course._id.toString())) {
+          existingCourseIds.add(item.course._id.toString());
+        }
       });
+    });
+
+    if (existingCourseIds.size > 0) {
+      const existingCourses = courses
+        .filter(c => existingCourseIds.has(c._id.toString()))
+        .map(c => c.title);
+
+      return AppError(
+        res,
+        `Already have pending/paid order for: ${existingCourses.join(", ")}`,
+        400
+      );
     }
 
     // Fetch user details
@@ -79,28 +109,54 @@ export const createOrder = async (req, res) => {
       "email firstName lastName country"
     );
 
-    // Calculate pricing
-    let originalPrice = course.discountPrice || course.price;
-    let discountAmount = course.price - originalPrice;
+    // Calculate pricing for each course
+    const orderItems = courses.map(course => {
+      const originalPrice = course.price;
+      const finalPrice = course.discountPrice || course.price;
+      const discountAmount = originalPrice - finalPrice;
 
+      return {
+        course: course._id,
+        originalPrice,
+        discountAmount,
+        finalPrice,
+        courseSnapshot: {
+          title: course.title,
+          instructor: course.instructor._id,
+          price: course.price,
+        }
+      };
+    });
 
-    // Calculate total
-    const subtotal = originalPrice;
-    const taxAmount = (subtotal * 0.18).toFixed(2); // 18% tax
-    const totalAmount = (subtotal + parseFloat(taxAmount)).toFixed(2);
+    // Calculate order totals
+    const subtotal = orderItems.reduce((sum, item) => sum + item.finalPrice, 0);
+    const totalDiscount = orderItems.reduce((sum, item) => sum + item.discountAmount, 0);
+    const totalAmount = parseFloat((subtotal ).toFixed(2));
 
     const orderNumber = generateOrderNumber();
 
-    // Create order
+    // Create Razorpay Order first (before DB order)
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(totalAmount * 100),
+      currency: "INR",
+      receipt: orderNumber,
+      notes: {
+        userId: userId.toString(),
+        courseCount: courses.length,
+        courseIds: courseIds.join(","),
+      },
+    });
+
+    // Create order in database
     const order = await Order.create({
       user: userId,
-      course: courseId,
-      originalPrice: course.price,
-      discountAmount,
-      taxAmount: parseFloat(taxAmount),
-      totalAmount: parseFloat(totalAmount),
+      items: orderItems,
+      subtotal,
+      totalDiscount,
+      totalAmount,
       currency: "INR",
-      status: "pending",
+      status: "processing",
+      paymentIntentId: razorpayOrder.id,
       expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
       orderNumber,
       userSnapshot: {
@@ -109,11 +165,6 @@ export const createOrder = async (req, res) => {
         lastName: user.lastName,
         country: user.country,
       },
-      courseSnapshot: {
-        title: course.title,
-        instructor: course.instructor._id,
-        price: course.price,
-      },
       metadata: {
         ipAddress: req.ip,
         userAgent: req.headers["user-agent"],
@@ -121,69 +172,14 @@ export const createOrder = async (req, res) => {
       },
     });
 
-    return ApiResponse(res, {
-      statusCode: 201,
-      message: "Order created successfully",
-      data: order,
-    });
-  } catch (error) {
-    console.error("Create order error:", error);
-    return AppError(res, "Failed to create order", 500);
-  }
-};
-
-
-
-export const initializeRazorpayPayment = async (req, res) => {
-  try {
-    const { orderId } = req.body;
-    const userId = req.user.id;
-
-    // Validate order
-    if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return AppError(res, "Invalid order ID", 400);
-    }
-
-    const order = await Order.findById(orderId).populate("course", "title");
-
-    if (!order) {
-      return AppError(res, "Order not found", 404);
-    }
-
-    if (order.user.toString() !== userId) {
-      return AppError(res, "Unauthorized access", 403);
-    }
-
-    if (order.status === "paid") {
-      return AppError(res, "Order already paid", 400);
-    }
-
-    if (order.isExpired()) {
-      order.status = "cancelled";
-      await order.save();
-      return AppError(res, "Order has expired", 400);
-    }
-
-    // Create Razorpay Order
-    const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(order.totalAmount * 100), // Convert to paise
-      currency: order.currency,
-      receipt: order.orderNumber,
-      notes: {
-        orderId: order._id.toString(),
-        userId: userId.toString(),
-        courseId: order.course._id.toString(),
-      },
-    });
-
     // Create payment record
-    const payment = await Payment.create({
+    await Payment.create({
       order: order._id,
       user: userId,
       provider: "razorpay",
       paymentId: razorpayOrder.id,
-      amount: order.totalAmount,
-      currency: order.currency,
+      amount: totalAmount,
+      currency: "INR",
       status: "pending",
       metadata: {
         ipAddress: req.ip,
@@ -191,27 +187,44 @@ export const initializeRazorpayPayment = async (req, res) => {
       },
     });
 
-    // Update order
-    order.paymentIntentId = razorpayOrder.id;
-    order.status = "processing";
-    await order.save();
+    // Prepare response data
+    const responseData = {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      razorpayOrderId: razorpayOrder.id,
+      amount: totalAmount,
+      currency: "INR",
+      key: process.env.RAZORPAY_KEY_ID,
+      courses: courses.map(c => ({
+        id: c._id,
+        title: c.title,
+        price: c.price,
+        discountPrice: c.discountPrice,
+      })),
+      pricing: {
+        subtotal,
+        discount: totalDiscount,
+        total: totalAmount,
+      },
+      expiresAt: order.expiresAt,
+    };
 
     return ApiResponse(res, {
-      statusCode: 200,
-      message: "Payment initialized successfully",
-      data: {
-        razorpayOrderId: razorpayOrder.id,
-        orderId: order._id,
-        amount: order.totalAmount,
-        currency: order.currency,
-        key: process.env.RAZORPAY_KEY_ID,
-      },
+      statusCode: 201,
+      message: "Order created and payment initialized successfully",
+      data: responseData,
     });
+
   } catch (error) {
-    console.error("Initialize Razorpay payment error:", error);
-    return AppError(res, "Failed to initialize payment", 500);
+    console.error("Create order and initialize payment error:", error);
+    if (error.error && error.error.description) {
+      return AppError(res, `Payment gateway error: ${error.error.description}`, 500);
+    }
+
+    return AppError(res, "Failed to process order", 500);
   }
 };
+
 export const verifyRazorpayPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
@@ -327,4 +340,3 @@ export const verifyRazorpayPayment = async (req, res) => {
     return AppError(res, "Payment verification failed", 500);
   }
 };
-

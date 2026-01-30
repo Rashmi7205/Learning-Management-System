@@ -1,9 +1,32 @@
-import React from 'react'
+import CategoriesSection from "@/components/home-page/CategoriesSection";
+import CoursesSection from "@/components/home-page/CoursesSection";
+import FAQSection from "@/components/home-page/FAQSection";
+import FeaturesSection from "@/components/home-page/FeaturesSection";
+import Footer from "@/components/home-page/Footer";
+import Header from "@/components/home-page/Header";
+import HeroSection from "@/components/home-page/HeroSection";
+import InstructorsSection from "@/components/home-page/InstructorsSection";
+import MembershipSection from "@/components/home-page/MembershipSection";
+import TestimonialsSection from "@/components/home-page/TestimonialsSection";
 
-const page = () => {
+
+const Index = () => {
   return (
-    <div>page</div>
-  )
-}
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <HeroSection />
+        <CoursesSection />
+        <CategoriesSection />
+        <FeaturesSection />
+        <InstructorsSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <MembershipSection />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
-export default page
+export default Index;
