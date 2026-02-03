@@ -22,10 +22,10 @@ import {
 } from 'lucide-react';
 
 export default function CourseDetailsPage() {
-  const [expandedWeeks, setExpandedWeeks] = useState({ week1: true });
+  const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({ week1: true });
   const [couponCode, setCouponCode] = useState('');
 
-  const toggleWeek = (week) => {
+  const toggleWeek = (week: string) => {
     setExpandedWeeks(prev => ({ ...prev, [week]: !prev[week] }));
   };
 

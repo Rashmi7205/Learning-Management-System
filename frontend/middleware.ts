@@ -15,17 +15,17 @@ export function middleware(request: NextRequest) {
   // Check if route is protected
   const isAuthRoute = pathname.startsWith("/(auth)/");
   const isLearnerRoute = pathname.startsWith("/(learner)/");
-  // const isInstructorRoute = pathname.startsWith("/instructor/");
+  const isInstructorRoute = pathname.startsWith("/instructor/");
 
   // If user is authenticated and trying to access auth routes, redirect to their dashboard
   if (token && isAuthRoute && pathname !== "/login") {
     if (userRole === "learner") {
       return NextResponse.redirect(
-        new URL("/(learner)/dashboard", request.url)
+        new URL("/(learner)/dashboard", request.url),
       );
     } else if (userRole === "instructor") {
       return NextResponse.redirect(
-        new URL("/instructor/dashboard", request.url)
+        new URL("/instructor/dashboard", request.url),
       );
     }
   }

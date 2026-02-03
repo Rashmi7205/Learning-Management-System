@@ -9,7 +9,7 @@ import { MyCourseGrid } from "@/components/dashboard/my-courses-grid";
 import { OrderHistory } from "@/components/dashboard/order-history";
 import { Recommendations } from "@/components/dashboard/recommendations";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
-import {Loader} from '@/components/ui/loader'
+import { Loader } from "@/components/ui/loader";
 import {
   Course,
   Enrollment,
@@ -43,8 +43,8 @@ export default function LearnerDashboardPage() {
   //get featured and bestseller courses
   const getFeaturedAndBestsellers = async () => {
     const data = await courseService.getFeatured();
-  setFeaturedCourses(data?.data);
-  }
+    setFeaturedCourses(data);
+  };
 
   // Fetch dashboard data
   useEffect(() => {

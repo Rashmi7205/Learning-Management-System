@@ -55,8 +55,13 @@ export default function ProfilePage() {
     totalReviews: 0,
     totalStudents: 0,
     totalCourses: 0,
-    createdAt: "",
-    updatedAt: "",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    totalEarnings: 0,
+    pendingPayout: 0,
+    identityVerified: false,
+    isFeatured: false,
+    isSuspended: false,
   });
 
   const dispatch = useAppDispatch();

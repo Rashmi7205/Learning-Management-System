@@ -4,7 +4,13 @@ import { Sidebar,Header } from "@/components/instructor/Sidebar";
 import { useState } from "react";
 import { ThemeProvider } from "../providers/theme-provider";
 
-export default function InstructorLayout({ children }) {
+import { ReactNode } from "react";
+
+interface InstructorLayoutProps {
+  children: ReactNode;
+}
+
+export default function InstructorLayout({ children }: InstructorLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (

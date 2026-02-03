@@ -129,7 +129,8 @@ bg-[url('/bg/bg-3.jpg')] bg-cover bg-center text-white"
               style={{ animationDelay: "0.5s" }}
             >
               {stats.map((stat, index) => {
-                const count = useCounter(stat.value);
+                const numericValue = parseInt(stat.value.replace(/\D/g, ""), 10);
+                const count = useCounter(numericValue);
 
                 return (
                   <div key={index} className="text-center">

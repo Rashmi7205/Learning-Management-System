@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {Datatable} from '@/components/instructor/Datatable'
+import { DataTable } from '@/components/instructor/Datatable'
 
 import {
   BarChart,
@@ -94,6 +94,35 @@ function getStatusColor(status: string) {
       return "bg-gray-500/20 text-gray-400";
   }
 }
+
+// Define columns for the DataTable
+const studentColumns = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: (info: any) => info.getValue(),
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: (info: any) => info.getValue(),
+  },
+  {
+    accessorKey: "course",
+    header: "Enrolled Courses",
+    cell: (info: any) => info.getValue(),
+  },
+  {
+    accessorKey: "progress",
+    header: "Completion (%)",
+    cell: (info: any) => `${info.getValue()}%`,
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: (info: any) => info.getValue(),
+  },
+];
 
 export default function StudentsPage() {
   return (

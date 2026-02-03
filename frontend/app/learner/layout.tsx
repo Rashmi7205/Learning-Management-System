@@ -84,7 +84,7 @@ export default function LearnerLayout({
             user?.firstName ? `${user.firstName} ${user.lastName}` : "Learner"
           }
           userEmail={user?.email || "learner@example.com"}
-          userAvatar={user?.avatar}
+          userAvatar={user?.avatar?.secureUrl}
         />
 
         {/* Page Content */}

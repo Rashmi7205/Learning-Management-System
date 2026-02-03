@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {Loader} from "@/components/ui/loader";
+import { Loader } from "@/components/ui/loader";
 import {
   AlertCircle,
   CheckCircle,
@@ -29,18 +29,20 @@ import {
   Calendar,
   Users,
 } from "lucide-react";
+
 interface ProfileFormData {
   firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    bio: string;
-    gender:string;
-    dob: string;
-    country: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  bio: string;
+  gender: string;
+  dob: string;
+  country: string;
 }
+
 export default function ProfilePage() {
-  const { user, isLoading,isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
@@ -54,13 +56,15 @@ export default function ProfilePage() {
     phone: user?.phone || "",
     bio: user?.bio || "",
     gender: user?.gender || "",
-    dob: user?.dob || "",
+    dob: user?.dob ? (typeof user.dob === 'string' ? user.dob : user.dob.toISOString().split('T')[0]) : "",
     country: user?.country || "",
   });
 
-  if (!isAuthenticated && !isLoading) {
-    router.push("/login");
-  }
+  React.useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   if (!user && isLoading) {
     return (
@@ -74,7 +78,7 @@ export default function ProfilePage() {
   }
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -90,7 +94,11 @@ export default function ProfilePage() {
     setSuccessMessage("");
 
     try {
-      const result = await dispatch(updateUserProfile(formData) as any);
+      const dataToSubmit = {
+        ...formData,
+        dob: formData.dob ? new Date(formData.dob) : undefined,
+      };
+      const result = await dispatch(updateUserProfile(dataToSubmit) as any);
 
       if (result.payload) {
         setSuccessMessage("Profile updated successfully!");
@@ -99,7 +107,7 @@ export default function ProfilePage() {
       }
     } catch (error: any) {
       setErrorMessage(
-        error.message || "Failed to update profile. Please try again."
+        error.message || "Failed to update profile. Please try again.",
       );
     }
   };
@@ -112,7 +120,7 @@ export default function ProfilePage() {
       phone: user?.phone || "",
       bio: user?.bio || "",
       gender: user?.gender || "",
-      dob: user?.dob || "",
+      dob: user?.dob ? (typeof user.dob === 'string' ? user.dob : user.dob.toISOString().split('T')[0]) : "",
       country: user?.country || "",
     });
     setIsEditing(false);
@@ -182,7 +190,7 @@ export default function ProfilePage() {
                     }
                     alt={`${user?.firstName} ${user?.lastName}`}
                   />
-                  <AvatarFallback className="bg-gradient-l-to-br from-primary to-primary/80 text-primary-foreground text-2xl font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-2xl font-bold">
                     {getInitials(user?.firstName, user?.lastName)}
                   </AvatarFallback>
                 </Avatar>
@@ -289,7 +297,7 @@ export default function ProfilePage() {
                     <Input
                       id="lastName"
                       name="lastName"
-                      value={formData.lastName as string}
+                      value={formData.lastName}
                       onChange={handleInputChange}
                       placeholder="Enter your last name"
                       className="mt-1"
@@ -320,7 +328,7 @@ export default function ProfilePage() {
                     <Input
                       id="phone"
                       name="phone"
-                      value={formData.phone as string}
+                      value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="e.g., +1234567890"
                       className="mt-1"
@@ -333,7 +341,7 @@ export default function ProfilePage() {
                   <div>
                     <Label htmlFor="gender">Gender</Label>
                     <Select
-                      value={formData.gender as string}
+                      value={formData.gender}
                       onValueChange={(value) =>
                         handleSelectChange("gender", value)
                       }
@@ -354,7 +362,7 @@ export default function ProfilePage() {
                       id="dob"
                       name="dob"
                       type="date"
-                      value={formData.dob as string}
+                      value={formData.dob}
                       onChange={handleInputChange}
                       className="mt-1"
                     />
@@ -455,7 +463,9 @@ export default function ProfilePage() {
                       Date of Birth
                     </p>
                     <p className="text-base font-medium text-foreground mt-1">
-                      {new Date(user?.dob || "").toLocaleDateString() || "—"}
+                      {user?.dob
+                        ? new Date(user.dob).toLocaleDateString()
+                        : "—"}
                     </p>
                   </div>
                   <div className="sm:col-span-2">

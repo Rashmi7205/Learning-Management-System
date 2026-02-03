@@ -1,132 +1,161 @@
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, Lock, Play, FileText, CheckCircle } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
 
-interface Course {
-  id: number;
+interface Lecture {
   title: string;
-  instructor: string;
-  instructorImage: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  price: number;
-  isFree: boolean;
+  type: "video" | "quiz" | "article" | "resource";
+  duration?: string;
+  isPreview?: boolean;
+  isLocked?: boolean;
 }
 
-interface RelatedCoursesProps {
+interface Section {
   title: string;
-  courses: Course[];
-  showViewAll?: boolean;
+  duration: string;
+  lectures: Lecture[];
 }
 
-const RelatedCourses = ({
-  title,
-  courses,
-  showViewAll,
-}: RelatedCoursesProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+interface CourseCurriculumProps {
+  curriculum: Section[];
+  totalSections: number;
+  totalLectures: number;
+  totalDuration: string;
+}
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 320;
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
+const CourseCurriculum = ({
+  curriculum,
+  totalSections,
+  totalLectures,
+  totalDuration,
+}: CourseCurriculumProps) => {
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(
+    new Set([0]),
+  );
+
+  const toggleSection = (index: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "video":
+        return <Play className="w-4 h-4" />;
+      case "quiz":
+        return <CheckCircle className="w-4 h-4" />;
+      case "article":
+        return <FileText className="w-4 h-4" />;
+      case "resource":
+        return <FileText className="w-4 h-4" />;
+      default:
+        return <Play className="w-4 h-4" />;
     }
   };
 
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-foreground">{title}</h2>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => scroll("left")}
-            className="rounded-full"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => scroll("right")}
-            className="rounded-full"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-          {showViewAll && (
-            <Button variant="link" asChild>
-              <Link
-              href="/">View All Courses</Link>
-            </Button>
-          )}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-foreground mb-4">
+          Course Curriculum
+        </h2>
+        <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+          <div>
+            <p className="text-sm text-muted-foreground">Sections</p>
+            <p className="text-lg font-semibold text-foreground">
+              {totalSections}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Lectures</p>
+            <p className="text-lg font-semibold text-foreground">
+              {totalLectures}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Duration</p>
+            <p className="text-lg font-semibold text-foreground">
+              {totalDuration}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {courses && courses.map((course) => (
-          <Link
-            key={course.id}
-            href={`/course/${course.id}`}
-            className="flex-shrink-0 w-[280px] bg-card rounded-2xl border border-border overflow-hidden card-hover shadow-soft group"
-          >
-            <div className="relative">
-              <Image
-                src={course.image}
-                alt={course.title}
-                className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              {course.isFree ? (
-                <span className="absolutehrefp-3 right-3 bg-green text-white px-2 py-1 rounded text-xs font-bold">
-                  Free
-                </span>
-              ) : (
-                <span className="absolutehrefp-3 right-3 bg-accent text-accent-foreground px-2 py-1 rounded text-xs font-bold">
-                  ₹{course.price}
-                </span>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                {course.title}
-              </h3>
-              <div className="flex items-center gap-2 mb-2">
-                <Image
-                  src={course.instructorImage}
-                  alt={course.instructor}
-                  className="w-6 h-6 rounded-full object-cover"
+      <div className="space-y-2">
+        {curriculum.map((section, sectionIndex) => (
+          <div key={sectionIndex} className="border border-border rounded-lg">
+            <button
+              onClick={() => toggleSection(sectionIndex)}
+              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3 text-left">
+                <ChevronDown
+                  className={`w-5 h-5 text-muted-foreground transition-transform ${
+                    expandedSections.has(sectionIndex)
+                      ? "rotate-0"
+                      : "-rotate-90"
+                  }`}
                 />
-                <span className="text-sm text-muted-foreground">
-                  {course.instructor}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-accent text-accent" />
-                  <span className="text-sm font-medium text-foreground">
-                    {course.rating > 0 ? course.rating.toFixed(1) : "New"}
-                  </span>
+                <div>
+                  <h3 className="font-semibold text-foreground">
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {section.lectures.length} lectures • {section.duration}
+                  </p>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  ({course.reviews} reviews)
-                </span>
               </div>
-            </div>
-          </Link>
+            </button>
+
+            {expandedSections.has(sectionIndex) && (
+              <div className="border-t border-border bg-muted/30">
+                {section.lectures.map((lecture, lectureIndex) => (
+                  <div
+                    key={lectureIndex}
+                    className="flex items-center gap-3 p-4 border-t border-border/50 last:border-t-0 hover:bg-muted/50 transition-colors"
+                  >
+                    {lecture.isLocked ? (
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      getIcon(lecture.type)
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm ${
+                          lecture.isLocked
+                            ? "text-muted-foreground"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {lecture.title}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-auto">
+                      {lecture.isPreview && (
+                        <span className="text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                          Preview
+                        </span>
+                      )}
+                      {lecture.duration && (
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {lecture.duration}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>
   );
 };
 
-export default RelatedCourses;
+export default CourseCurriculum;

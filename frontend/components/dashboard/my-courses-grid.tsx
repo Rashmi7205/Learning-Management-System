@@ -26,15 +26,14 @@ export function MyCourseGrid({ enrollments }: MyCourseGridProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {enrollments.map(({ enrollment, course, certificate, daysRemaining }) => (
-        <CourseCard
-          key={enrollment._id}
-          course={course}
-          enrollment={enrollment}
-          certificate={certificate}
-          daysRemaining={daysRemaining}
-        />
-      ))}
+      {enrollments
+        .filter(({ course }) => course.thumbnail)
+        .map(({ enrollment, course, certificate, daysRemaining }) => (
+          <CourseCard
+            key={enrollment._id}
+            course={course as Course & { thumbnail: { publicId: string; secureUrl: string } }}
+          />
+        ))}
     </div>
   );
 }

@@ -21,7 +21,7 @@ import InstructorSection from "@/components/courseDetails/InstructorSection";
 import StudentReviews from "@/components/courseDetails/StudentReviews";
 import CourseSidebar from "@/components/courseDetails/CourseSidebar";
 import RelatedCourses from "@/components/courseDetails/RelatedCourses";
-import CourseCurriculam from "@/components/courseDetails/CourseCurriculum"
+import CourseCurriculum from "@/components/courseDetails/CourseCurriculum";
 
 // Mock course data
 const courseData = {
@@ -29,7 +29,8 @@ const courseData = {
   category: "Development",
   subcategory: "Web Development",
   title: "Master React Development - Complete Guide 2024",
-  subtitle: "Learn React from scratch and build production-ready applications with hooks, context, Redux, and real-world projects",
+  subtitle:
+    "Learn React from scratch and build production-ready applications with hooks, context, Redux, and real-world projects",
   image: course1,
   price: 499,
   originalPrice: 2999,
@@ -73,56 +74,182 @@ const courseData = {
       title: "Introduction to React",
       duration: "35 min",
       lectures: [
-        { title: "Welcome to the Course", type: "video" as const, duration: "5:30", isPreview: true },
-        { title: "What is React?", type: "video" as const, duration: "8:45", isPreview: true },
-        { title: "Setting Up Development Environment", type: "video" as const, duration: "12:20", isLocked: true },
-        { title: "Quiz: React Fundamentals", type: "quiz" as const, isLocked: true },
-        { title: "Resources: Starter Files", type: "resource" as const, isLocked: true },
+        {
+          title: "Welcome to the Course",
+          type: "video" as const,
+          duration: "5:30",
+          isPreview: true,
+        },
+        {
+          title: "What is React?",
+          type: "video" as const,
+          duration: "8:45",
+          isPreview: true,
+        },
+        {
+          title: "Setting Up Development Environment",
+          type: "video" as const,
+          duration: "12:20",
+          isLocked: true,
+        },
+        {
+          title: "Quiz: React Fundamentals",
+          type: "quiz" as const,
+          isLocked: true,
+        },
+        {
+          title: "Resources: Starter Files",
+          type: "resource" as const,
+          isLocked: true,
+        },
       ],
     },
     {
       title: "React Components Deep Dive",
       duration: "1h 45min",
       lectures: [
-        { title: "Understanding Components", type: "video" as const, duration: "15:00", isLocked: true },
-        { title: "Functional vs Class Components", type: "video" as const, duration: "12:30", isLocked: true },
-        { title: "Props and PropTypes", type: "video" as const, duration: "18:00", isLocked: true },
-        { title: "Component Composition", type: "video" as const, duration: "14:00", isLocked: true },
-        { title: "Article: Best Practices", type: "article" as const, isLocked: true },
-        { title: "Project: Building a Card Component", type: "video" as const, duration: "25:00", isLocked: true },
+        {
+          title: "Understanding Components",
+          type: "video" as const,
+          duration: "15:00",
+          isLocked: true,
+        },
+        {
+          title: "Functional vs Class Components",
+          type: "video" as const,
+          duration: "12:30",
+          isLocked: true,
+        },
+        {
+          title: "Props and PropTypes",
+          type: "video" as const,
+          duration: "18:00",
+          isLocked: true,
+        },
+        {
+          title: "Component Composition",
+          type: "video" as const,
+          duration: "14:00",
+          isLocked: true,
+        },
+        {
+          title: "Article: Best Practices",
+          type: "article" as const,
+          isLocked: true,
+        },
+        {
+          title: "Project: Building a Card Component",
+          type: "video" as const,
+          duration: "25:00",
+          isLocked: true,
+        },
       ],
     },
     {
       title: "State & Props Mastery",
       duration: "1h 20min",
       lectures: [
-        { title: "Understanding State", type: "video" as const, duration: "16:00", isLocked: true },
-        { title: "useState Hook Deep Dive", type: "video" as const, duration: "20:00", isLocked: true },
-        { title: "Lifting State Up", type: "video" as const, duration: "15:00", isLocked: true },
-        { title: "Quiz: State Management", type: "quiz" as const, isLocked: true },
+        {
+          title: "Understanding State",
+          type: "video" as const,
+          duration: "16:00",
+          isLocked: true,
+        },
+        {
+          title: "useState Hook Deep Dive",
+          type: "video" as const,
+          duration: "20:00",
+          isLocked: true,
+        },
+        {
+          title: "Lifting State Up",
+          type: "video" as const,
+          duration: "15:00",
+          isLocked: true,
+        },
+        {
+          title: "Quiz: State Management",
+          type: "quiz" as const,
+          isLocked: true,
+        },
       ],
     },
     {
       title: "React Hooks Complete Guide",
       duration: "2h 10min",
       lectures: [
-        { title: "useEffect Hook", type: "video" as const, duration: "22:00", isLocked: true },
-        { title: "useContext Hook", type: "video" as const, duration: "18:00", isLocked: true },
-        { title: "useReducer Hook", type: "video" as const, duration: "20:00", isLocked: true },
-        { title: "useMemo & useCallback", type: "video" as const, duration: "25:00", isLocked: true },
-        { title: "Custom Hooks", type: "video" as const, duration: "30:00", isLocked: true },
-        { title: "Project: Building Custom Hooks", type: "video" as const, duration: "35:00", isLocked: true },
+        {
+          title: "useEffect Hook",
+          type: "video" as const,
+          duration: "22:00",
+          isLocked: true,
+        },
+        {
+          title: "useContext Hook",
+          type: "video" as const,
+          duration: "18:00",
+          isLocked: true,
+        },
+        {
+          title: "useReducer Hook",
+          type: "video" as const,
+          duration: "20:00",
+          isLocked: true,
+        },
+        {
+          title: "useMemo & useCallback",
+          type: "video" as const,
+          duration: "25:00",
+          isLocked: true,
+        },
+        {
+          title: "Custom Hooks",
+          type: "video" as const,
+          duration: "30:00",
+          isLocked: true,
+        },
+        {
+          title: "Project: Building Custom Hooks",
+          type: "video" as const,
+          duration: "35:00",
+          isLocked: true,
+        },
       ],
     },
     {
       title: "Working with APIs",
       duration: "1h 30min",
       lectures: [
-        { title: "Fetch API Basics", type: "video" as const, duration: "15:00", isLocked: true },
-        { title: "Axios Integration", type: "video" as const, duration: "12:00", isLocked: true },
-        { title: "React Query Introduction", type: "video" as const, duration: "20:00", isLocked: true },
-        { title: "Error Handling", type: "video" as const, duration: "18:00", isLocked: true },
-        { title: "Loading States", type: "video" as const, duration: "15:00", isLocked: true },
+        {
+          title: "Fetch API Basics",
+          type: "video" as const,
+          duration: "15:00",
+          isLocked: true,
+        },
+        {
+          title: "Axios Integration",
+          type: "video" as const,
+          duration: "12:00",
+          isLocked: true,
+        },
+        {
+          title: "React Query Introduction",
+          type: "video" as const,
+          duration: "20:00",
+          isLocked: true,
+        },
+        {
+          title: "Error Handling",
+          type: "video" as const,
+          duration: "18:00",
+          isLocked: true,
+        },
+        {
+          title: "Loading States",
+          type: "video" as const,
+          duration: "15:00",
+          isLocked: true,
+        },
       ],
     },
   ],
@@ -150,10 +277,22 @@ In this course, we'll cover everything from the basics to advanced concepts, inc
   ],
 
   targetAudience: [
-    { icon: "beginner" as const, description: "Beginners who want to learn React from scratch" },
-    { icon: "student" as const, description: "Students looking to build portfolio projects" },
-    { icon: "professional" as const, description: "Professionals switching to frontend development" },
-    { icon: "advanced" as const, description: "Developers who want to master modern React" },
+    {
+      icon: "beginner" as const,
+      description: "Beginners who want to learn React from scratch",
+    },
+    {
+      icon: "student" as const,
+      description: "Students looking to build portfolio projects",
+    },
+    {
+      icon: "professional" as const,
+      description: "Professionals switching to frontend development",
+    },
+    {
+      icon: "advanced" as const,
+      description: "Developers who want to master modern React",
+    },
   ],
 
   instructors: [
@@ -190,19 +329,22 @@ In this course, we'll cover everything from the basics to advanced concepts, inc
       user: "Sarah Johnson",
       avatar: testimonial1,
       rating: 5,
-      comment: "Excellent course! The instructor explains everything clearly and the projects are very practical. I went from knowing nothing about React to building my own applications. Highly recommend for anyone wanting to learn React.",
+      comment:
+        "Excellent course! The instructor explains everything clearly and the projects are very practical. I went from knowing nothing about React to building my own applications. Highly recommend for anyone wanting to learn React.",
       date: "2 weeks ago",
       isVerified: true,
       helpfulCount: 234,
       notHelpfulCount: 12,
-      instructorResponse: "Thank you for the kind words, Sarah! So glad you're enjoying the course. 🙏",
+      instructorResponse:
+        "Thank you for the kind words, Sarah! So glad you're enjoying the course. 🙏",
     },
     {
       id: 2,
       user: "Mike Chen",
       avatar: testimonial2,
       rating: 4,
-      comment: "Great content but could use more advanced examples. Overall very satisfied with my purchase. The explanations are clear and the pace is good for beginners.",
+      comment:
+        "Great content but could use more advanced examples. Overall very satisfied with my purchase. The explanations are clear and the pace is good for beginners.",
       date: "1 month ago",
       isVerified: true,
       helpfulCount: 156,
@@ -213,7 +355,8 @@ In this course, we'll cover everything from the basics to advanced concepts, inc
       user: "Emily Brown",
       avatar: testimonial3,
       rating: 5,
-      comment: "This is exactly what I needed to transition into frontend development. The instructor's teaching style is engaging and the projects are relevant to real-world scenarios. Worth every penny!",
+      comment:
+        "This is exactly what I needed to transition into frontend development. The instructor's teaching style is engaging and the projects are relevant to real-world scenarios. Worth every penny!",
       date: "1 month ago",
       isVerified: true,
       helpfulCount: 189,
@@ -235,8 +378,8 @@ const relatedCourses = [
     id: 2,
     title: "JavaScript Complete Bootcamp 2024",
     instructor: "Millar Richard",
-    instructorImage: instructor1,
-    image: course2,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-2.png",
     rating: 4.8,
     reviews: 1523,
     price: 799,
@@ -246,8 +389,8 @@ const relatedCourses = [
     id: 3,
     title: "TypeScript for React Developers",
     instructor: "Jhon Doe",
-    instructorImage: instructor2,
-    image: course3,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-3.png",
     rating: 4.7,
     reviews: 892,
     price: 899,
@@ -257,8 +400,8 @@ const relatedCourses = [
     id: 4,
     title: "Next.js Complete Course",
     instructor: "Millar Richard",
-    instructorImage: instructor1,
-    image: course4,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-4.png",
     rating: 4.9,
     reviews: 2341,
     price: 1099,
@@ -268,8 +411,8 @@ const relatedCourses = [
     id: 5,
     title: "Node.js Backend Mastery",
     instructor: "Jhon Doe",
-    instructorImage: instructor2,
-    image: course1,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-1.png",
     rating: 4.6,
     reviews: 756,
     price: 0,
@@ -282,8 +425,8 @@ const studentsAlsoBought = [
     id: 6,
     title: "CSS Mastery: From Basics to Advanced",
     instructor: "Millar Richard",
-    instructorImage: instructor1,
-    image: course3,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-3.png",
     rating: 4.5,
     reviews: 543,
     price: 599,
@@ -293,8 +436,8 @@ const studentsAlsoBought = [
     id: 7,
     title: "Git & GitHub Complete Guide",
     instructor: "Jhon Doe",
-    instructorImage: instructor2,
-    image: course2,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-2.png",
     rating: 4.8,
     reviews: 1234,
     price: 0,
@@ -304,8 +447,8 @@ const studentsAlsoBought = [
     id: 8,
     title: "Redux Toolkit Master Course",
     instructor: "Millar Richard",
-    instructorImage: instructor1,
-    image: course4,
+    instructorImage: "/assets/ist.png",
+    image: "/assets/course-4.png",
     rating: 4.7,
     reviews: 678,
     price: 699,
@@ -332,7 +475,7 @@ const CourseDetails = () => {
         lastUpdated={courseData.lastUpdated}
         instructor={{
           name: courseData.instructors[0].name,
-          image: courseData.instructors[0].image,
+          image: "/asstes/ist.png",
         }}
         language={courseData.language}
         subtitles={courseData.subtitles}
@@ -349,8 +492,8 @@ const CourseDetails = () => {
               <WhatYouWillLearn outcomes={courseData.learningOutcomes} />
 
               {/* Course Curriculum */}
-              <CourseCurriculam
-                sections={courseData.curriculum}
+              <CourseCurriculum
+                curriculum={courseData.curriculum}
                 totalSections={courseData.curriculum.length}
                 totalLectures={courseData.curriculum.reduce(
                   (acc, s) => acc + s.lectures.length,
@@ -372,21 +515,29 @@ const CourseDetails = () => {
               <WhoIsThisFor audiences={courseData.targetAudience} />
 
               {/* Instructor */}
-              <InstructorSection instructors={courseData.instructors} />
+              <InstructorSection
+                instructors={courseData.instructors.map((i) => ({
+                  ...i,
+                  image: "/assets/ist.png",
+                }))}
+              />
 
               {/* Student Reviews */}
               <StudentReviews
                 rating={courseData.rating}
                 totalRatings={courseData.totalRatings}
                 ratingBreakdown={courseData.ratingBreakdown}
-                reviews={courseData.reviews}
+                reviews={courseData.reviews.map((review) => ({
+                  ...review,
+                  avatar: "/assets/ist.png",
+                }))}
               />
             </div>
 
             {/* Right Sidebar */}
             <div className="lg:col-span-1 order-1 lg:order-2">
               <CourseSidebar
-                image={courseData.image}
+                image={"/assets/course-1.png"}
                 price={courseData.price}
                 originalPrice={courseData.originalPrice}
                 isFree={courseData.isFree}
@@ -396,7 +547,7 @@ const CourseDetails = () => {
                 instructors={courseData.instructors.map((i) => ({
                   name: i.name,
                   role: i.title,
-                  image: i.image,
+                  image: "/assets/ist.png",
                 }))}
               />
             </div>
