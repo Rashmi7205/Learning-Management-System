@@ -1,4 +1,5 @@
 import CategoriesSection from "@/components/home-page/CategoriesSection";
+import CertificateFeatures from "@/components/home-page/CertificateFeatures";
 import CoursesSection from "@/components/home-page/CoursesSection";
 import FAQSection from "@/components/home-page/FAQSection";
 import FeaturesSection from "@/components/home-page/FeaturesSection";
@@ -20,6 +21,7 @@ const Index = () => {
         <CategoriesSection />
         <FeaturesSection />
         <InstructorsSection />
+        <CertificateFeatures/>
         <TestimonialsSection />
         <FAQSection />
         <MembershipSection />

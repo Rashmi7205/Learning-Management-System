@@ -373,11 +373,16 @@
 @layer utilities {
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(to right, var(--primary), var(--primary));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  background: linear-gradient(
+    90deg,
+    #ec4899,  /* pink-500 */
+    #a855f7,  /* purple-500 */
+    #6366f1   /* indigo-500 */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
   /* Gradient backgrounds */
