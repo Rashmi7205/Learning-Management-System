@@ -591,7 +591,7 @@ export function AuthUI({
           {logoSrc && (
             <div className="mb-8 flex-row w-full flex items-center justify-center">
               <Image
-                src="/images/logo-bright.png"
+                src="/images/logo.png"
                 alt="Logo"
                 height={50}
                 width={120}
@@ -637,7 +637,7 @@ export function AuthUI({
         {logoSrc && (
           <div className="flex justify-center py-6">
             <Image
-              src="/images/logo-bright.png"
+              src="/images/logo.png"
               alt="Logo"
               height={50}
               width={120}

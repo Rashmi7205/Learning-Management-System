@@ -281,6 +281,49 @@ const getAllInstructors = async (req, res) => {
   return ApiResponse(res, { statusCode: 200, data: instructors });
 };
 
+const getFeaturedInstructors = async (req,res)=>{
+  try {
+    const { page = 1, limit = 10, expertise, rating } = req.query;
+    const query = { isSuspended: false };
+    if (expertise) query.expertise = {
+      $in: [expertise],
+    };
+    if (rating && !isNaN(rating)) {
+      query.rating = { $gte: Number(rating) };
+    }
+
+
+    const instructors = await Instructor.find(query)
+      .populate("user", "firstName lastName avatar")
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .sort({ rating: -1 })
+      .select({
+        expertise: 0,
+        yearsOfExperience:0,
+        education: 0,
+        certifications:0,
+        payoutDetails: 0,
+        totalStudents:0,
+        totalCourses:0,
+        taxId: 0,
+        totalEarnings: 0,
+        pendingPayout: 0,
+        payoutMethod:0,
+        payoutDetails:0,
+        suspensionReason: 0,
+        isSuspended: 0,
+        agreementAcceptedAt: 0,
+        identityVerified: 0,
+        suspensionReason:0,
+      });
+
+    return ApiResponse(res, { statusCode: 200, data: instructors });
+  } catch (error) {
+    return AppError(res,"Internal Server Error",404);
+  }
+}
+
 const searchInstructors = async (req, res) => {
   const { q } = req.query;
 
@@ -365,4 +408,5 @@ export {
   suspendInstructor,
   unsuspendInstructor,
   getVerificationStatus,
+  getFeaturedInstructors
 }

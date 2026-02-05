@@ -129,7 +129,7 @@ const CourseHero = ({
           <div className="flex items-center gap-4 mb-6">
             <span className="text-white/60">Created by:</span>
             <Link href="/" className="flex items-center gap-2 group">
-              <Image
+              <img
                 src={instructor.image}
                 alt={instructor.name}
                 className="w-8 h-8 rounded-full border-2 border-white/30 group-hover:border-primary transition-colors"

@@ -23,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Image from "next/image";
 
 interface CourseSidebarProps {
   image: string;
@@ -64,7 +63,7 @@ const CourseSidebar = ({
     <div className="sticky top-24 bg-card border border-border rounded-2xl overflow-hidden shadow-soft">
       {/* Video Preview */}
       <div className="relative group cursor-pointer">
-        <Image
+        <img
           src={image}
           alt="Course preview"
           className="w-full h-48 object-cover"
@@ -279,7 +278,7 @@ const CourseSidebar = ({
           <div className="space-y-4">
             {instructors.map((instructor, idx) => (
               <div key={idx} className="flex items-center gap-3">
-                <Image
+                <img
                   src={instructor.image}
                   alt={instructor.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"

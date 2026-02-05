@@ -31,10 +31,11 @@ const Header = () => {
           <a href="/" className="flex items-center gap-3">
             <Image
               src="/images/logo.png"
-              width={200}
+              width={50}
               height={70}
               alt="Courseloop"
             />
+            <p className="text-white font-bold text-xl">CourseLoop</p>
           </a>
 
           {/* Desktop Navigation */}

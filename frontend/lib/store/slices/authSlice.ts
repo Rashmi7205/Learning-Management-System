@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import apiClient from "@/lib/api-client";
-import type { User, LoginResponse, RegisterResponse } from "@/lib/types";
+import type { User } from "@/lib/types";
 
 // Types
 export interface AuthState {
@@ -64,9 +64,6 @@ export const registerUser = createAsyncThunk(
   ) => {
     try {
       const response = await apiClient.post<any>("/auth/register", credentials);
-
-      // Handle the response structure: { success, message, data }
-      // Token comes via HttpOnly cookie automatically
       const userData = response.data.data || response.data.user;
 
       // Validate user data
@@ -328,7 +325,7 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Fetch Profil
+    // Fetch Profile
     builder
       .addCase(fetchUserProfile.pending, (state) => {
         state.isLoading = true;

@@ -1,10 +1,11 @@
 import { instructorService } from "@/lib/services/api";
-import { Course, Instructor } from "@/lib/types";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Course, FeaturedInstructor, Instructor } from "@/lib/types";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 /* ------------------ Types ------------------ */
 
 interface InstructorState {
+  featuredInstructors: FeaturedInstructor[];
   profile: Instructor | null;
   dashboard: any | null;
   analytics: any | null;
@@ -15,9 +16,8 @@ interface InstructorState {
   error: string | null;
 }
 
-/* ------------------ Initial State ------------------ */
-
 const initialState: InstructorState = {
+  featuredInstructors: [],
   profile: null,
   dashboard: null,
   analytics: null,
@@ -27,6 +27,19 @@ const initialState: InstructorState = {
   loading: false,
   error: null,
 };
+
+export const fetchFeaturedInstructors = createAsyncThunk(
+  "instructor/fetchFeatured",
+  async (_, thunkAPI) => {
+    try {
+      return await instructorService.getFeaturedInstructors();
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || "Failed to load featured instructors",
+      );
+    }
+  },
+);
 
 export const fetchInstructorProfile = createAsyncThunk(
   "instructor/fetchProfile",
@@ -159,8 +172,6 @@ const instructorSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      /* -------- addCase FIRST -------- */
-
       .addCase(fetchInstructorProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload.data[0];
@@ -200,9 +211,10 @@ const instructorSlice = createSlice({
         state.loading = false;
         state.courses = state.courses.filter((c) => c._id !== action.payload);
       })
-
-      /* -------- addMatcher LAST -------- */
-
+      .addCase(fetchFeaturedInstructors.fulfilled, (state, action) => {
+        state.loading = false;
+        state.featuredInstructors = action.payload;
+      })
       .addMatcher(
         (action) =>
           action.type.startsWith("instructor/") &&

@@ -76,8 +76,8 @@ const RelatedCourses = ({ title, courses, showViewAll }: RelatedCoursesProps) =>
             className="flex-shrink-0 w-[280px] bg-card rounded-2xl border border-border overflow-hidden card-hover shadow-soft group"
           >
             <div className="relative">
-              <Image
-                src={course.image}
+              <img
+                src="assets/course-1.jpg"
                 alt={course.title}
                 className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -96,8 +96,8 @@ const RelatedCourses = ({ title, courses, showViewAll }: RelatedCoursesProps) =>
                 {course.title}
               </h3>
               <div className="flex items-center gap-2 mb-2">
-                <Image
-                  src={course.instructorImage}
+                <img
+                  src="/assets/ist.png"
                   alt={course.instructor}
                   className="w-6 h-6 rounded-full object-cover"
                 />

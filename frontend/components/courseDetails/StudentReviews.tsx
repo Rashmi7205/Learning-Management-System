@@ -165,7 +165,7 @@ const StudentReviews = ({
             className="bg-card border border-border rounded-2xl p-6"
           >
             <div className="flex items-start gap-4">
-              <Image
+              <img
                 src={review.avatar}
                 alt={review.user}
                 className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"

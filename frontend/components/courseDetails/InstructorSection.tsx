@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 
 interface Instructor {
   name: string;
@@ -52,7 +51,7 @@ const InstructorSection = ({ instructors }: InstructorSectionProps) => {
             <div className="flex flex-col sm:flex-row gap-6">
               {/* Profile Image & Actions */}
               <div className="flex flex-col items-center sm:items-start gap-4">
-                <Image
+                <img
                   src={instructor.image}
                   alt={instructor.name}
                   className="w-28 h-28 rounded-full object-cover border-4 border-primary/20"

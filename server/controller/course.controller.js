@@ -469,14 +469,12 @@ const getCourses = async (req, res, next) => {
           averageRating: 1,
           completionRate: 1,
 
+          totalSections: 1,
+          totalLectures: 1,
+          totalDuration:1,
+
           instructor: {
             _id: "$instructorData._id",
-            title: "$instructorData.title",
-            expertise: "$instructorData.expertise",
-            rating: "$instructorData.rating",
-            totalStudents: "$instructorData.totalStudents",
-            totalCourses: "$instructorData.totalCourses",
-            isFeatured: "$instructorData.isFeatured",
             user: {
               firstName: "$instructorUser.firstName",
               lastName: "$instructorUser.lastName",

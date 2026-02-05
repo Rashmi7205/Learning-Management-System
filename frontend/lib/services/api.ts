@@ -287,6 +287,15 @@ export const certificateService = {
 
 // INSTRUCTOR API
 export const instructorService = {
+  getFeaturedInstructors :async (limit = 6) => {
+    const response = await apiClient.get<Instructor[]>(
+      "/instructors/featured",
+      {
+        params: { limit },
+      }
+    );
+    return response.data.data;
+  },
   getProfileData : async ()=>{
      const response = await apiClient.get("/instructors/");
     return response.data;

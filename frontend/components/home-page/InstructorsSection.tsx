@@ -1,52 +1,25 @@
-import { Star, BookOpen, Users } from "lucide-react";
+"use client";
+import { Star, Youtube, Twitter, Linkedin, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-import instructor1 from "@/public/assets/ist.png";
-import instructor2 from "@/public/assets/ist.png";
-import instructor3 from "@/public/assets/ist.png";
-import instructor4 from "@/public/assets/ist.png";
-import Image from "next/image";
-
-const instructors = [
-  {
-    id: 1,
-    name: "Albert Webber",
-    role: "Chief Advisor",
-    image: instructor1,
-    courses: 12,
-    students: 45000,
-    rating: 4.9,
-  },
-  {
-    id: 2,
-    name: "Amayah Harmon",
-    role: "Digital Marketer",
-    image: instructor2,
-    courses: 8,
-    students: 38000,
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: "Ameer Cohen",
-    role: "Web Developer",
-    image: instructor3,
-    courses: 15,
-    students: 52000,
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    name: "Baker Bonilla",
-    role: "WordPress Expert",
-    image: instructor4,
-    courses: 6,
-    students: 31000,
-    rating: 4.7,
-  },
-];
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useEffect } from "react";
+import { fetchFeaturedInstructors } from "@/lib/store/slices/instructorSlice";
+import { FeaturedInstructor } from "@/lib/types";
+import { Card, CardContent } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const InstructorsSection = () => {
+  const instructors: FeaturedInstructor[] = useAppSelector(
+    (state) => state.instructor.featuredInstructors,
+  );
+  const dispatch = useAppDispatch();
+
+useEffect(() => {
+  if (!instructors.length) {
+    dispatch(fetchFeaturedInstructors());
+  }
+}, [dispatch, instructors.length]);
+
   return (
     <section id="instructors" className="py-20 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,47 +40,101 @@ const InstructorsSection = () => {
         {/* Instructors Grid - 4 columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {instructors.map((instructor) => (
-            <div key={instructor.id} className="instructor-card group">
-              {/* Profile Image */}
-              <div className="relative mb-4">
-                <Image
-                  src={instructor.image}
-                  alt={instructor.name}
-                  className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-primary/20 group-hover:border-primary transition-colors"
-                />
-                <div className="absolute bottom-0 right-1/2 translate-x-8 translate-y-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                  <Star className="w-4 h-4 text-primary-foreground fill-primary-foreground" />
-                </div>
-              </div>
+            <Card
+              key={instructor._id}
+              className="group relative rounded-2xl border border-border bg-card shadow-soft transition-all hover:- translate-y-1 hover:shadow-lg"
+            >
+              <CardContent className="p-6 text-center">
+                {/* Avatar */}
+                <div className="relative mb-4 flex justify-center">
+                  <Avatar className="h-24 w-24 border-4 border-primary/20 transition-colors group-hover:border-primary">
+                    <AvatarImage
+                      src={
+                        instructor?.user?.avatar?.secureUrl ||
+                        "/assets/default-avatar.png"
+                      }
+                    />
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {instructor?.user?.firstName?.[0]}
+                      {instructor?.user?.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
 
-              {/* Instructor Info */}
-              <h3 className="font-bold text-lg text-foreground mb-1 group-hover:text-primary transition-colors">
-                {instructor.name}
-              </h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                {instructor.role}
-              </p>
-
-              {/* Stats */}
-              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  <span>{instructor.courses} Courses</span>
+                  <div className="absolute bottom-0 right-1/2 translate-x-10 translate-y-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary shadow-md">
+                    <Star className="h-4 w-4 text-primary-foreground fill-primary-foreground" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span>{(instructor.students / 1000).toFixed(0)}K</span>
-                </div>
-              </div>
 
-              {/* View Profile */}
-              <Button
-                variant="outline"
-                className="w-full mt-4 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground rounded-xl"
-              >
-                View Profile
-              </Button>
-            </div>
+                {/* Name */}
+                <h3 className="mb-1 text-lg font-bold text-foreground transition-colors group-hover:text-primary">
+                  {instructor?.user
+                    ? `${instructor?.user?.firstName} ${instructor?.user?.lastName}`
+                    : "Instructor"}
+                </h3>
+
+                {/* Title */}
+                <p className="mb-4 text-sm text-muted-foreground">
+                  {instructor.title || "Instructor"}
+                </p>
+
+                {/* Rating */}
+                <div className="mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Star className="h-4 w-4 fill-warning text-warning" />
+                  <span className="font-semibold text-foreground">
+                    {instructor.rating}
+                  </span>
+                  <span>({instructor.totalReviews} reviews)</span>
+                </div>
+
+                {/* Social Links */}
+                <div className="flex justify-center gap-4">
+                  {instructor.website && (
+                    <a
+                      href={instructor.website}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Globe className="h-5 w-5" />
+                    </a>
+                  )}
+                  {instructor.linkedin && (
+                    <a
+                      href={instructor.linkedin}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Linkedin className="h-5 w-5" />
+                    </a>
+                  )}
+                  {instructor.twitter && (
+                    <a
+                      href={instructor.twitter}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Twitter className="h-5 w-5" />
+                    </a>
+                  )}
+                  {instructor.youtube && (
+                    <a
+                      href={instructor.youtube}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Youtube className="h-5 w-5" />
+                    </a>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl border-primary/30 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                >
+                  View Profile
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
