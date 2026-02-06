@@ -15,8 +15,9 @@ import { ERROR_MESSAGES } from "../constants/index.js";
 import ApiResponse from "../utils/apiResponse.js";
 import { Instructor } from "../models/user.model.js";
 import User from "../models/user.model.js";
-import { generateCertificatePDF } from "../utils/pdf.genreator.js";
-import { uploadAttachment } from "../services/s3.js";
+import generateCertificateHTMLPomise, {
+  generateCertificateHTML,
+} from "../utils/certificate.js";
 
 import {
   deleteImage,
@@ -64,7 +65,7 @@ const createCourse = async (req, res, next) => {
         res,
         "Course description cannot be blank",
         400,
-        req.files
+        req.files,
       );
 
     if (!Array.isArray(category) || !category.length) {
@@ -75,7 +76,7 @@ const createCourse = async (req, res, next) => {
         res,
         "At least one learning outcome required",
         400,
-        req.files
+        req.files,
       );
     }
 
@@ -97,7 +98,7 @@ const createCourse = async (req, res, next) => {
         res,
         "Discount price cannot exceed price",
         400,
-        req.files
+        req.files,
       );
     }
 
@@ -728,7 +729,7 @@ const publishCourse = async (req, res, next) => {
     const course = await Course.findByIdAndUpdate(
       courseId,
       { status: "published", publishedAt: new Date() },
-      { new: true }
+      { new: true },
     );
     if (!course) {
       return AppError(res, "Course not found", 404);
@@ -792,7 +793,7 @@ const deleteCourse = async (req, res) => {
       return AppError(
         res,
         "Course cannot be deleted because it has enrollments",
-        409
+        409,
       );
     }
     const sectionsCount = await Section.countDocuments({
@@ -803,7 +804,7 @@ const deleteCourse = async (req, res) => {
       return AppError(
         res,
         "Course cannot be deleted because it has sections",
-        409
+        409,
       );
     }
     if (course.thumbnail?.publicId) {
@@ -945,7 +946,6 @@ const archiveCourse = async (req, res, next) => {
   }
 };
 
-// generate certficate
 const generateCertificate = async (req, res, next) => {
   try {
     const { id } = req.user;
@@ -968,6 +968,22 @@ const generateCertificate = async (req, res, next) => {
     if (!course) {
       return AppError(res, "Course did'nt exist", 404);
     }
+    // Check if user already generated the certificate
+    const certificate = await Certificate.findOne({
+      user: user._id,
+      course: course._id,
+    });
+    if (certificate) {
+      return ApiResponse(res, {
+        statusCode: 200,
+        message: "Certificate already generated",
+        data: await generateCertificateHTMLPomise({
+          studentName: user.name,
+          courseTitle: course.title,
+          certificateId: certificate.certificateId,
+        }),
+      });
+    }
     // verify if user is enrolled in the course
     const enrollment = await Enrollment.findOne({
       user: user._id,
@@ -987,28 +1003,21 @@ const generateCertificate = async (req, res, next) => {
     }
     // Generate certificate
     const certificateId = uuidv4();
-    // Generate certificate PDF
-    const pdfPath = await generateCertificatePDF({
-      studentName: user.name,
-      courseTitle: course.title,
-      certificateId,
-    });
-    // Upload PDF to cloud storage
-    const { publicId, secureUrl } = await uploadAttachment(pdfPath);
-
-    const certificate = await Certificate.create({
+    const newCertificate = new Certificate({
       user: user._id,
       course: course._id,
-      issueDate: new Date(),
       certificateId,
-      publicId,
-      secureUrl,
+      issuedAt: new Date(),
     });
-    // Return certificate
+    await newCertificate.save(); // save
     return ApiResponse(res, {
       statusCode: 200,
       message: "Certificate generated successfully",
-      data: certificate,
+      data: await generateCertificateHTMLPomise({
+        studentName: user.name,
+        courseTitle: course.title,
+        certificateId,
+      }),
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
@@ -1029,44 +1038,15 @@ const verifyCertificate = async (req, res, next) => {
     if (!certificate) {
       return AppError(res, "Certificate did'nt exist", 404);
     }
-    // Return certificate
     return ApiResponse(res, {
       statusCode: 200,
       message: "Certificate verified successfully",
-      data: certificate,
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
 
-const getCoursesByStudent = async (req, res, next) => {
-  try {
-    const { id } = req.user;
-    if (!id) {
-      return AppError(res, ERROR_MESSAGES.UNAUTHORIZED, 404);
-    }
-    const user = await User.findOne({ _id: new mongoose.Types.ObjectId(id) });
-    if (!user) {
-      return AppError(res, "User doesnot exist", 404);
-    }
-    //  Fetch courses and verify ownership
-    const courses = await Course.find({
-      status: "published",
-    });
-    if (!courses) {
-      return AppError(res, "Courses did'nt exist", 404);
-    }
-    // Return courses
-    return ApiResponse(res, {
-      statusCode: 200,
-      message: "Courses fetched successfully",
-      data: courses,
-    });
-  } catch (error) {
-    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
-  }
-};
 export {
   createCourse,
   getCourseById,
@@ -1080,5 +1060,4 @@ export {
   archiveCourse,
   generateCertificate,
   verifyCertificate,
-  getCoursesByStudent,
 };

@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 import AppError from "../utils/user.error.js";
-import { deleteAttachment, deleteVideo, uploadAttachment, uploadVideo } from "../services/s3.js";
+import {
+  deleteAttachment,
+  deleteVideo,
+  uploadAttachment,
+  uploadVideo,
+} from "../services/s3.js";
 import { Lecture, Section } from "../models/course.model.js";
 import { Instructor } from "../models/user.model.js";
 
@@ -43,11 +48,7 @@ export const createLecture = async (req, res) => {
     } = req.body;
 
     if (!title || !description) {
-      return AppError(
-        res,
-        "Title and description are required",
-        400
-      );
+      return AppError(res, "Title and description are required", 400);
     }
 
     const lastLecture = await Lecture.findOne({ section: sectionId })
@@ -75,12 +76,10 @@ export const createLecture = async (req, res) => {
       message: "Lecture created successfully",
       data: lecture,
     });
-
   } catch (error) {
     return AppError(res, error.message, 500);
   }
 };
-
 
 export const getSectionLectures = async (req, res) => {
   try {
@@ -90,22 +89,23 @@ export const getSectionLectures = async (req, res) => {
       return AppError(res, "Invalid section ID", 400);
     }
 
-    const section = await Section.findById(sectionId)
-      .populate("course", "_id status");
+    const section = await Section.findById(sectionId).populate(
+      "course",
+      "_id status",
+    );
 
     if (!section) {
       return AppError(res, "Section not found", 404);
     }
 
     const lectureQuery = {
-      section: sectionId
+      section: sectionId,
     };
-
 
     const lectures = await Lecture.find(lectureQuery)
       .sort({ order: 1 })
       .select(
-        "title description videoUrl duration isPreview isDownloadable order createdAt"
+        "title description videoUrl duration isPreview isDownloadable order createdAt",
       );
 
     return ApiResponse(res, {
@@ -117,12 +117,11 @@ export const getSectionLectures = async (req, res) => {
           title: section.title,
           totalLectures: section.totalLectures,
           totalDuration: section.totalDuration,
-          isFreePreview: section.isFreePreview
+          isFreePreview: section.isFreePreview,
         },
-        lectures
-      }
+        lectures,
+      },
     });
-
   } catch (error) {
     console.log(error);
     return AppError(res, "Failed to fetch section lectures", 500);
@@ -137,14 +136,13 @@ export const updateLecture = async (req, res) => {
       return AppError(res, "Invalid lecture ID", 400);
     }
 
-    const lecture = await Lecture.findById(lectureId)
-      .populate({
-        path: "section",
-        populate: {
-          path: "course",
-          select: "_id instructor totalDuration totalLectures"
-        }
-      });
+    const lecture = await Lecture.findById(lectureId).populate({
+      path: "section",
+      populate: {
+        path: "course",
+        select: "_id instructor totalDuration totalLectures",
+      },
+    });
 
     if (!lecture) {
       return AppError(res, "Lecture not found", 404);
@@ -155,7 +153,7 @@ export const updateLecture = async (req, res) => {
 
     const instructor = await Instructor.findOne({
       user: userId,
-      _id: course.instructor
+      _id: course.instructor,
     });
 
     if (!instructor) {
@@ -169,9 +167,8 @@ export const updateLecture = async (req, res) => {
       videoProvider,
       duration,
       isPreview,
-      isDownloadable
+      isDownloadable,
     } = req.body;
-
 
     if (title !== undefined && !title.trim()) {
       return AppError(res, "Lecture title cannot be empty", 400);
@@ -189,8 +186,7 @@ export const updateLecture = async (req, res) => {
       return AppError(res, "Invalid video provider", 400);
     }
     const oldDuration = lecture.duration || 0;
-    const newDuration =
-      duration !== undefined ? Number(duration) : oldDuration;
+    const newDuration = duration !== undefined ? Number(duration) : oldDuration;
 
     const durationDiff = newDuration - oldDuration;
     if (title !== undefined) lecture.title = title;
@@ -199,16 +195,13 @@ export const updateLecture = async (req, res) => {
     if (videoProvider !== undefined) lecture.videoProvider = videoProvider;
     if (duration !== undefined) lecture.duration = newDuration;
     if (isPreview !== undefined) lecture.isPreview = isPreview;
-    if (isDownloadable !== undefined)
-      lecture.isDownloadable = isDownloadable;
+    if (isDownloadable !== undefined) lecture.isDownloadable = isDownloadable;
 
     await lecture.save();
     if (durationDiff !== 0) {
-      section.totalDuration =
-        (section.totalDuration || 0) + durationDiff;
+      section.totalDuration = (section.totalDuration || 0) + durationDiff;
 
-      course.totalDuration =
-        (course.totalDuration || 0) + durationDiff;
+      course.totalDuration = (course.totalDuration || 0) + durationDiff;
 
       await section.save();
       await course.save();
@@ -217,14 +210,12 @@ export const updateLecture = async (req, res) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Lecture updated successfully",
-      data: lecture
+      data: lecture,
     });
-
   } catch (error) {
     return AppError(res, "Failed to update lecture", 500);
   }
 };
-
 
 export const deleteLecture = async (req, res) => {
   try {
@@ -240,14 +231,13 @@ export const deleteLecture = async (req, res) => {
       return AppError(res, "Instructor not found", 403);
     }
 
-    const lecture = await Lecture.findById(lectureId)
-      .populate({
-        path: "section",
-        populate: {
-          path: "course",
-          select: "_id instructor totalLectures totalDuration"
-        }
-      });
+    const lecture = await Lecture.findById(lectureId).populate({
+      path: "section",
+      populate: {
+        path: "course",
+        select: "_id instructor totalLectures totalDuration",
+      },
+    });
     if (lecture.videoProvider === "s3" && lecture.videoUrl) {
       const publicId = lecture.videoUrl.publicId;
       await deleteVideo(publicId);
@@ -274,17 +264,15 @@ export const deleteLecture = async (req, res) => {
     section.totalLectures = Math.max(0, section.totalLectures - 1);
     section.totalDuration = Math.max(
       0,
-      section.totalDuration - lectureDuration
+      section.totalDuration - lectureDuration,
     );
     await section.save();
     course.totalLectures = Math.max(0, course.totalLectures - 1);
-    course.totalDuration = Math.max(
-      0,
-      course.totalDuration - lectureDuration
-    );
+    course.totalDuration = Math.max(0, course.totalDuration - lectureDuration);
     await course.save();
-    const remainingLectures = await Lecture.find({ section: section._id })
-      .sort({ order: 1 });
+    const remainingLectures = await Lecture.find({ section: section._id }).sort(
+      { order: 1 },
+    );
 
     for (let i = 0; i < remainingLectures.length; i++) {
       remainingLectures[i].order = i + 1;
@@ -295,7 +283,6 @@ export const deleteLecture = async (req, res) => {
       statusCode: 200,
       message: "Lecture deleted successfully",
     });
-
   } catch (error) {
     return AppError(res, "Failed to delete lecture", 500);
   }
@@ -317,13 +304,12 @@ export const uploadLectureVideo = async (req, res) => {
       return AppError(res, "Instructor not found", 403, req.file);
     }
 
-
     const lecture = await Lecture.findById(lectureId).populate({
       path: "section",
       populate: {
         path: "course",
-        select: "_id instructor totalDuration totalLectures"
-      }
+        select: "_id instructor totalDuration totalLectures",
+      },
     });
 
     if (!lecture) {
@@ -340,7 +326,7 @@ export const uploadLectureVideo = async (req, res) => {
     if (videoUrl && videoProvider === "youtube") {
       lecture.videoUrl = {
         publicId: null,
-        secureUrl: videoUrl
+        secureUrl: videoUrl,
       };
       lecture.videoProvider = videoProvider;
       await lecture.save();
@@ -368,7 +354,12 @@ export const uploadLectureVideo = async (req, res) => {
         const { publicId, secureUrl } = await uploadVideo(req.file.path);
         uploadedVideo = { publicId, secureUrl };
       } catch (error) {
-        return AppError(res, "Failed to upload video to storage", 500, req.file);
+        return AppError(
+          res,
+          "Failed to upload video to storage",
+          500,
+          req.file,
+        );
       }
     }
 
@@ -389,7 +380,6 @@ export const uploadLectureVideo = async (req, res) => {
     lecture.videoProvider = "s3";
     lecture.duration = newDuration;
 
-
     await lecture.save();
     await section.save();
     await course.save();
@@ -403,7 +393,6 @@ export const uploadLectureVideo = async (req, res) => {
         provider: lecture.videoProvider,
       },
     });
-
   } catch (error) {
     console.log(error);
     if (uploadedVideo?.publicId) {
@@ -433,8 +422,8 @@ export const updateLectureVideo = async (req, res) => {
       path: "section",
       populate: {
         path: "course",
-        select: "_id instructor totalDuration totalLectures status"
-      }
+        select: "_id instructor totalDuration totalLectures status",
+      },
     });
 
     if (!lecture) {
@@ -459,7 +448,7 @@ export const updateLectureVideo = async (req, res) => {
       // Delete old S3 video if exists
       if (lecture.videoProvider === "s3" && lecture.videoUrl) {
         try {
-          const publicId = lecture.videoUrl.split('/').pop().split('.')[0];
+          const publicId = lecture.videoUrl.split("/").pop().split(".")[0];
           await deleteVideo(publicId);
         } catch (error) {
           console.error("Error deleting old video:", error);
@@ -468,7 +457,7 @@ export const updateLectureVideo = async (req, res) => {
 
       lecture.videoUrl = {
         publicId: null,
-        secureUrl: videoUrl
+        secureUrl: videoUrl,
       };
       lecture.videoProvider = videoProvider;
 
@@ -490,12 +479,8 @@ export const updateLectureVideo = async (req, res) => {
 
         lecture.duration = newDuration;
 
-        await Promise.all([
-          section.save(),
-          course.save()
-        ]);
+        await Promise.all([section.save(), course.save()]);
       }
-
 
       await lecture.save();
 
@@ -518,19 +503,34 @@ export const updateLectureVideo = async (req, res) => {
     // Validate file size (e.g., max 50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (req.file.size > maxSize) {
-      return AppError(res, "Video file too large. Maximum size is 500MB", 400, req.file);
+      return AppError(
+        res,
+        "Video file too large. Maximum size is 500MB",
+        400,
+        req.file,
+      );
     }
 
     // Validate file type
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+    const allowedTypes = [
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+      "video/quicktime",
+    ];
     if (!allowedTypes.includes(req.file.mimetype)) {
-      return AppError(res, "Invalid video format. Allowed: MP4, WebM, OGG, MOV", 400, req.file);
+      return AppError(
+        res,
+        "Invalid video format. Allowed: MP4, WebM, OGG, MOV",
+        400,
+        req.file,
+      );
     }
 
     try {
       // Delete old S3 video if exists
       if (lecture.videoProvider === "s3" && lecture.videoUrl) {
-        const publicId = lecture.videoUrl.split('/').pop().split('.')[0];
+        const publicId = lecture.videoUrl.split("/").pop().split(".")[0];
         await deleteVideo(publicId);
       }
 
@@ -575,7 +575,6 @@ export const updateLectureVideo = async (req, res) => {
         provider: lecture.videoProvider,
       },
     });
-
   } catch (error) {
     console.error("Video upload failed:", error);
 
@@ -608,13 +607,12 @@ export const uploadLectureAttachment = async (req, res) => {
       return AppError(res, "Instructor not found", 403, req.file);
     }
 
-
     const lecture = await Lecture.findById(lectureId).populate({
       path: "section",
       populate: {
         path: "course",
-        select: "_id instructor totalDuration totalLectures"
-      }
+        select: "_id instructor totalDuration totalLectures",
+      },
     });
 
     if (!lecture) {
@@ -636,23 +634,27 @@ export const uploadLectureAttachment = async (req, res) => {
         uploadedAttachment = { publicId, secureUrl };
         lecture.attachment = {
           publicId,
-          url: secureUrl
+          url: secureUrl,
         };
         await lecture.save();
       } catch (error) {
-        return AppError(res, "Failed to upload attachment to storage", 500, req.file);
+        return AppError(
+          res,
+          "Failed to upload attachment to storage",
+          500,
+          req.file,
+        );
       }
 
       return ApiResponse(res, {
         statusCode: 200,
         message: "Lecture attachment uploaded successfully",
         data: {
-          lecture
+          lecture,
         },
       });
     }
   } catch (error) {
-
     if (uploadedAttachment?.publicId) {
       await deleteAttachment(uploadedAttachment.publicId);
     }
