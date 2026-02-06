@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, ArrowRight, Zap } from "lucide-react";
+import Image from "next/image";
 
 const benefits = [
   "Unlimited access to all 200+ courses",
@@ -62,20 +63,14 @@ const MembershipSection = () => {
               {/* Pricing Box / CTA */}
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-600/20 blur-3xl rounded-full" />
-                <div className="relative p-8 rounded-[2.5rem] bg-[#020617] border border-white/10 text-center shadow-2xl">
-                  <div className="mb-6">
-                    <span className="text-slate-500 text-sm font-bold uppercase">
-                      Monthly Plan
-                    </span>
-                    <div className="flex items-center justify-center gap-1 mt-2">
-                      <span className="text-2xl font-bold text-white mb-4">
-                        $
-                      </span>
-                      <span className="text-6xl font-black text-white tracking-tighter">
-                        29
-                      </span>
-                      <span className="text-slate-500 font-bold">/mo</span>
-                    </div>
+                <div className="relative p-8 rounded-[2.5rem] text-center">
+                  <div className="flex items-center justify-center my-10">
+                    <Image
+                      src="/images/banner-thumbnail.png"
+                      alt="banner"
+                      width={300}
+                      height={300}
+                    />
                   </div>
 
                   <Button className="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-lg font-bold shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] active:scale-95 group">

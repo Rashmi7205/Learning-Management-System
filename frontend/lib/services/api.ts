@@ -12,6 +12,7 @@ import type {
   LoginResponse,
   RegisterResponse,
   FeaturedInstructor,
+  CourseCardData,
 } from "@/lib/types";
 
 // Auth API calls
@@ -80,12 +81,22 @@ export const authService = {
 
 // COURSES API
 export const courseService = {
-  getAll: async (page = 1, limit = 10, filters?: any) => {
-    const response = await apiClient.get<PaginatedResponse<Course>>(
+  getAll: async (
+    page = 1,
+    limit = 9,
+    searchText?: string,
+    category?: string[] | string,
+  ) => {
+    const response = await apiClient.get<PaginatedResponse<CourseCardData>>(
       "/courses",
       {
-        params: { page, limit, ...filters },
-      }
+        params: {
+          page,
+          limit,
+          searchText,
+          category,
+        },
+      },
     );
     return response.data;
   },
@@ -95,8 +106,12 @@ export const courseService = {
     return response.data;
   },
 
-  getFeatured: async (limit = 6) => {
-    const response = await apiClient.get<Course[]>("/courses/featured", {
+  getFeatured: async (limit = 8) => {
+    const response = await apiClient.get<{
+      success: boolean;
+      message: string;
+      data: CourseCardData[];
+    }>("/courses/featured", {
       params: { limit },
     });
     return response.data;
@@ -107,7 +122,7 @@ export const courseService = {
       "/courses/search",
       {
         params: { query, limit },
-      }
+      },
     );
     return response.data;
   },
@@ -129,6 +144,10 @@ export const courseService = {
 
   publish: async (id: string) => {
     const response = await apiClient.post(`/courses/${id}/publish`);
+    return response.data;
+  },
+  getCategoryList: async () => {
+    const response = await apiClient.get(`/courses/categories`);
     return response.data;
   },
 };

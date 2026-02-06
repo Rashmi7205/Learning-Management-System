@@ -40,11 +40,7 @@ export default function LearnerDashboardPage() {
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
   const [bestsellerCourses, setBestsellerCourses] = useState<Course[]>([]);
 
-  //get featured and bestseller courses
-  const getFeaturedAndBestsellers = async () => {
-    const data = await courseService.getFeatured();
-    setFeaturedCourses(data);
-  };
+
 
   // Fetch dashboard data
   useEffect(() => {
@@ -484,8 +480,6 @@ export default function LearnerDashboardPage() {
         setIsLoading(false);
       }
     };
-
-    getFeaturedAndBestsellers();
 
     if (user?._id) {
       fetchDashboardData();

@@ -10,18 +10,20 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { fetchCourses } from "@/lib/store/slices/courseClice"; // Note: Check if this should be courseSlice
+
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import Link from "next/link";
+import {  getFeaturedCoursesList } from "@/lib/store/slices/courseClice";
 
 const CoursesSection = () => {
   const dispatch = useAppDispatch();
-  const courses = useAppSelector((state) => state.courses);
+  const courses = useAppSelector((state) => state.courses.featuredCourses);
 
   useEffect(() => {
     if (courses.length === 0) {
-      dispatch(fetchCourses());
+      dispatch(getFeaturedCoursesList());
     }
+    console.log(courses);
   }, [courses.length, dispatch]);
 
   return (

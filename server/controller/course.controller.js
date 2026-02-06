@@ -389,18 +389,78 @@ const getCourseById = async (req, res) => {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 }
+
+const getCourseAggregationStages = (query) => [
+  { $match: query },
+  { $lookup: { from: "enrollments", localField: "_id", foreignField: "course", as: "enrollments" } },
+  { $lookup: { from: "reviews", localField: "_id", foreignField: "course", as: "reviews" } },
+  { $lookup: { from: "instructors", localField: "instructor", foreignField: "_id", as: "instructorData" } },
+  { $unwind: { path: "$instructorData", preserveNullAndEmptyArrays: true } },
+  { $lookup: { from: "users", localField: "instructorData.user", foreignField: "_id", as: "instructorUser" } },
+  { $unwind: { path: "$instructorUser", preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      enrollmentCount: { $size: "$enrollments" },
+      reviewCount: {
+        $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.isApproved", true] } } }
+      },
+      completedEnrollments: {
+        $size: { $filter: { input: "$enrollments", as: "e", cond: { $eq: ["$$e.isCompleted", true] } } }
+      },
+      averageRating: {
+        $ifNull: [{
+          $avg: {
+            $map: {
+              input: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.isApproved", true] } } },
+              as: "rev", in: "$$rev.rating"
+            }
+          }
+        }, 0]
+      }
+    }
+  },
+  {
+    $addFields: {
+      completionRate: {
+        $cond: [
+          { $gt: ["$enrollmentCount", 0] },
+          { $multiply: [{ $divide: ["$completedEnrollments", "$enrollmentCount"] }, 100] },
+          0
+        ]
+      }
+    }
+  },
+  {
+    $project: {
+      title: 1, slug: 1, category: 1, thumbnail: 1, price: 1,
+      discountPrice: 1, currency: 1, isFree: 1, status: 1,
+      isFeatured: 1, bestseller: 1, publishedAt: 1, createdAt: 1,
+      enrollmentCount: 1, reviewCount: 1, averageRating: 1, completionRate: 1,
+      totalSections: 1, totalLectures: 1, totalDuration: 1,
+      instructor: {
+        _id: "$instructorData._id",
+        user: { firstName: "$instructorUser.firstName", lastName: "$instructorUser.lastName", avatar: "$instructorUser.avatar" }
+      }
+    }
+  }
+];
 // getCourses
-const getCourses = async (req, res, next) => {
+const getCourses = async (req, res) => {
   try {
     const { page = 1, limit = 10, searchText, category } = req.query;
     const pageNum = Math.max(Number(page), 1);
     const limitNum = Math.min(Number(limit), 50);
 
+    const query = {
+      status: "published",
+      isArchived: { $ne: true }
+    };
+
     if (category) {
       const categories = Array.isArray(category) ? category : [category];
       query.category = { $in: categories };
     }
-    const query = { isArchived: { $ne: true } };
+
     if (searchText) {
       query.$or = [
         { title: { $regex: searchText, $options: "i" } },
@@ -408,175 +468,38 @@ const getCourses = async (req, res, next) => {
         { description: { $regex: searchText, $options: "i" } }
       ];
     }
-    query.status = "published";
 
-    const courseStats = await Course.aggregate([
-      { $match: query },
-      {
-        $lookup: {
-          from: "enrollments",
-          localField: "_id",
-          foreignField: "course",
-          as: "enrollments"
-        }
-      },
-      {
-        $lookup: {
-          from: "reviews",
-          localField: "_id",
-          foreignField: "course",
-          as: "reviews"
-        }
-      },
-      {
-        $lookup: {
-          from: "instructors",
-          localField: "instructor",
-          foreignField: "_id",
-          as: "instructorData"
-        }
-      },
-      {
-        $unwind: {
-          path: "$instructorData",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "instructorData.user",
-          foreignField: "_id",
-          as: "instructorUser"
-        }
-      },
-      {
-        $unwind: {
-          path: "$instructorUser",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $addFields: {
-          enrollmentCount: { $size: "$enrollments" },
-          reviewCount: { $size: "$reviews" },
-
-          completedEnrollments: {
-            $size: {
-              $filter: {
-                input: "$enrollments",
-                as: "e",
-                cond: { $eq: ["$$e.isCompleted", true] }
-              }
-            }
-          },
-
-          approvedReviews: {
-            $filter: {
-              input: "$reviews",
-              as: "r",
-              cond: { $eq: ["$$r.isApproved", true] }
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          averageRating: {
-            $ifNull: [
-              { $avg: "$approvedReviews.rating" },
-              0
-            ]
-          },
-          completionRate: {
-            $cond: {
-              if: { $gt: ["$enrollmentCount", 0] },
-              then: {
-                $multiply: [
-                  { $divide: ["$completedEnrollments", "$enrollmentCount"] },
-                  100
-                ]
-              },
-              else: 0
-            }
-          }
-        }
-      },
-
-      {
-        $project: {
-          title: 1,
-          subtitle: 1,
-          description: 1,
-          slug: 1,
-          category: 1,
-          thumbnail: 1,
-          price: 1,
-          discountPrice: 1,
-          currency: 1,
-          isFree: 1,
-          status: 1,
-          isFeatured: 1,
-          bestseller: 1,
-          publishedAt: 1,
-          createdAt: 1,
-
-          enrollmentCount: 1,
-          reviewCount: 1,
-          averageRating: 1,
-          completionRate: 1,
-
-          totalSections: 1,
-          totalLectures: 1,
-          totalDuration: 1,
-
-          instructor: {
-            _id: "$instructorData._id",
-            user: {
-              firstName: "$instructorUser.firstName",
-              lastName: "$instructorUser.lastName",
-              avatar: "$instructorUser.avatar"
-            }
-          }
-        }
-      },
-
-      /* ---------------- SORT + PAGINATION ---------------- */
-
+    const results = await Course.aggregate([
+      ...getCourseAggregationStages(query),
       { $sort: { enrollmentCount: -1 } },
-
       {
         $facet: {
-          data: [
-            { $skip: (pageNum - 1) * limitNum },
-            { $limit: limitNum }
-          ],
-          meta: [
-            { $count: "total" }
-          ]
+          data: [{ $skip: (pageNum - 1) * limitNum }, { $limit: limitNum }],
+          meta: [{ $count: "total" }]
         }
       }
     ]);
 
-    const courses = courseStats[0].data;
-    const total = courseStats[0].meta[0]?.total || 0;
+    const courses = results[0]?.data || [];
+    const total = results[0]?.meta[0]?.total || 0;
 
     return ApiResponse(res, {
       statusCode: 200,
-      data: courses,
-      pagination: {
-        total,
-        page: pageNum,
-        limit: limitNum,
-        totalPages: Math.ceil(total / limitNum)
-      }
+      data: {
+        courses,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum)
+        }
+      },
     });
-
-
   } catch (error) {
+    console.error("getCourses Error:", error);
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 //get Course By instructor
 const getCoursesByInstructor = async (req, res, next) => {
   try {
@@ -772,18 +695,119 @@ const publishCourse = async (req, res, next) => {
   }
 }
 // getFeaturedCourses
-const getFeaturedCourses = async (req, res, next) => {
+const getFeaturedCourses = async (req, res) => {
   try {
-    const courses = await Course.find({ isFeatured: true, isArchived: { $ne: true } }).limit(10);
+    const limitNum = Math.min(Number(req.query.limit) || 10, 20);
+
+    const query = {
+      isFeatured: true,
+      status: "published",
+      isArchived: { $ne: true }
+    };
+
+    const courses = await Course.aggregate([
+      { $match: query },
+      {
+        $lookup: {
+          from: "enrollments",
+          localField: "_id",
+          foreignField: "course",
+          as: "enrollments"
+        }
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "_id",
+          foreignField: "course",
+          as: "reviews"
+        }
+      },
+      {
+        $lookup: {
+          from: "instructors",
+          localField: "instructor",
+          foreignField: "_id",
+          as: "instructorData"
+        }
+      },
+      { $unwind: { path: "$instructorData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "instructorData.user",
+          foreignField: "_id",
+          as: "instructorUser"
+        }
+      },
+      { $unwind: { path: "$instructorUser", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          enrollmentCount: { $size: "$enrollments" },
+          reviewCount: {
+            $size: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.isApproved", true] } } }
+          },
+          completedEnrollments: {
+            $size: { $filter: { input: "$enrollments", as: "e", cond: { $eq: ["$$e.isCompleted", true] } } }
+          },
+          averageRating: {
+            $ifNull: [
+              {
+                $avg: {
+                  $map: {
+                    input: { $filter: { input: "$reviews", as: "r", cond: { $eq: ["$$r.isApproved", true] } } },
+                    as: "rev",
+                    in: "$$rev.rating"
+                  }
+                }
+              },
+              0
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          completionRate: {
+            $cond: [
+              { $gt: ["$enrollmentCount", 0] },
+              { $multiply: [{ $divide: ["$completedEnrollments", "$enrollmentCount"] }, 100] },
+              0
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          title: 1, slug: 1, category: 1, thumbnail: 1, price: 1,
+          discountPrice: 1, currency: 1, isFree: 1, status: 1,
+          isFeatured: 1, bestseller: 1, publishedAt: 1, createdAt: 1,
+          enrollmentCount: 1, reviewCount: 1, averageRating: 1, completionRate: 1,
+          totalSections: 1, totalLectures: 1, totalDuration: 1,
+          instructor: {
+            _id: "$instructorData._id",
+            user: {
+              firstName: "$instructorUser.firstName",
+              lastName: "$instructorUser.lastName",
+              avatar: "$instructorUser.avatar"
+            }
+          }
+        }
+      },
+      { $sort: { enrollmentCount: -1 } },
+      { $limit: limitNum }
+    ]);
+
     return ApiResponse(res, {
       statusCode: 200,
       message: "Featured courses fetched successfully",
       data: courses
     });
+
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
-}
+};
 
 //delete course
 const deleteCourse = async (req, res) => {
@@ -854,7 +878,7 @@ const deleteCourse = async (req, res) => {
 
 
 //update pricing
-const updatePricing = async (req, res, next) => {
+const updatePricing = async (req, res) => {
   try {
     //Validate user || Authenticate and verify instructor role
     const { id } = req.user;
@@ -918,7 +942,7 @@ const updatePricing = async (req, res, next) => {
 }
 
 // Archive/Unarchive Course
-const archiveCourse = async (req, res, next) => {
+const archiveCourse = async (req, res) => {
   try {
     const { id } = req.user;
     if (!id) {
@@ -967,6 +991,44 @@ const archiveCourse = async (req, res, next) => {
   }
 }
 
+//get All categorylist
+
+const getCourseCategories = async (req, res) => {
+  try {
+    const categories = await Course.aggregate([
+      {
+        $match: {
+          status: "published",
+          isArchived: { $ne: true }
+        }
+      },
+      { $unwind: "$category" },
+      {
+        $group: {
+          _id: "$category",
+          courseCount: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          count: "$courseCount"
+        }
+      }
+    ]);
+
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Categories fetched successfully",
+      data: categories
+    });
+  } catch (error) {
+    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+};
+
 export {
   createCourse,
   getCourseById,
@@ -977,5 +1039,6 @@ export {
   getFeaturedCourses,
   publishCourse,
   updatePricing,
-  archiveCourse
+  archiveCourse,
+  getCourseCategories
 }

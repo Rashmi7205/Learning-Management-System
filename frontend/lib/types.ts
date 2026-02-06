@@ -426,11 +426,17 @@ export interface RegisterResponse {
 // Pagination
 export interface PaginatedResponse<T> {
   success: boolean;
-  data: T[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
+  data: {
+    courses: T[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+    };
   };
+}
+export interface Category {
+  name: string;
+  count: number;
 }
