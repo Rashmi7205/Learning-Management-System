@@ -14,6 +14,8 @@ courseRouter.post("/", isLoggedIn, isInstructor,
   createCourse);
 //   getCourses
 courseRouter.get("/",getCourses);
+//   getCourseById
+courseRouter.get("/:courseId", getCourseById);
 //   updateCourse,
 courseRouter.put("/:courseId", isLoggedIn, isAdminOrInstructor, upload.fields([
   { name: "thumbnail", maxCount: 1 },
@@ -32,6 +34,5 @@ courseRouter.put("/publish/:courseId", isLoggedIn, isInstructor,publishCourse);
 courseRouter.put("/pricing/:courseId", isLoggedIn, isInstructor, updatePricing);
 // archive course
 courseRouter.put("/:courseId/archive", isLoggedIn, isInstructor, archiveCourse);
-//   getCourseById
-courseRouter.get("/:courseId",isLoggedIn,getCourseById);
+
 export default courseRouter;

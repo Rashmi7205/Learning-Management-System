@@ -3,3 +3,4 @@
 /server/.env
 /server/uploads/*
 /server/seed.js
+/frontend/app/demo/*

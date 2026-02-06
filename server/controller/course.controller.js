@@ -224,11 +224,11 @@ const updateCourse = async (req, res) => {
 };
 
 // getCourseById
-const getCourseById = async (req, res, next) => {
+const getCourseById = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    if (!courseId || !new mongoose.Types.ObjectId.isValid(courseId)) {
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return AppError(res, "Invalid Course ID", 400);
     }
 
@@ -249,7 +249,7 @@ const getCourseById = async (req, res, next) => {
           as: "instructor"
         }
       },
-      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$instructor" },
       {
         $lookup: {
           from: "users",
@@ -258,7 +258,51 @@ const getCourseById = async (req, res, next) => {
           as: "instructorUser"
         }
       },
-      { $unwind: { path: "$instructorUser", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$instructorUser" },
+      {
+        $lookup: {
+          from: "sections",
+          localField: "_id",
+          foreignField: "course",
+          as: "sections"
+        }
+      },
+      {
+        $lookup: {
+          from: "lectures",
+          localField: "_id",
+          foreignField: "section",
+          as: "lectures"
+        }
+      },
+      {
+        $addFields: {
+          sections: {
+            $map: {
+              input: "$sections",
+              as: "section",
+              in: {
+                _id: "$$section._id",
+                title: "$$section.title",
+                description: "$$section.description",
+                order: "$$section.order",
+                isFreePreview: "$$section.isFreePreview",
+                totalLectures: "$$section.totalLectures",
+                totalDuration: "$$section.totalDuration",
+                lectures: {
+                  $filter: {
+                    input: "$lectures",
+                    as: "lecture",
+                    cond: {
+                      $eq: ["$$lecture.section", "$$section._id"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       {
         $lookup: {
           from: "reviews",
@@ -272,6 +316,13 @@ const getCourseById = async (req, res, next) => {
           reviewCount: { $size: "$reviews" },
           averageRating: {
             $ifNull: [{ $avg: "$reviews.rating" }, 0]
+          },
+          totalSections: { $size: "$sections" },
+          totalLectures: {
+            $size: "$lectures"
+          },
+          totalDuration: {
+            $sum: "$lectures.duration"
           }
         }
       },
@@ -280,18 +331,28 @@ const getCourseById = async (req, res, next) => {
           title: 1,
           subtitle: 1,
           description: 1,
+          whatYouWillLearn: 1,
+          requirements: 1,
           slug: 1,
           category: 1,
+
           thumbnail: 1,
+          promoVideo: 1,
+
           price: 1,
           discountPrice: 1,
           currency: 1,
           isFree: 1,
+
           status: 1,
           isFeatured: 1,
           bestseller: 1,
           publishedAt: 1,
           createdAt: 1,
+
+          totalSections: 1,
+          totalLectures: 1,
+          totalDuration: 1,
 
           reviewCount: 1,
           averageRating: 1,
@@ -310,10 +371,13 @@ const getCourseById = async (req, res, next) => {
               lastName: "$instructorUser.lastName",
               avatar: "$instructorUser.avatar"
             }
-          }
+          },
+
+          sections: 1
         }
       }
     ]);
+
 
     return ApiResponse(res, {
       statusCode: 200,
@@ -321,6 +385,7 @@ const getCourseById = async (req, res, next) => {
       data: course
     })
   } catch (error) {
+    console.log(error);
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 }
@@ -471,7 +536,7 @@ const getCourses = async (req, res, next) => {
 
           totalSections: 1,
           totalLectures: 1,
-          totalDuration:1,
+          totalDuration: 1,
 
           instructor: {
             _id: "$instructorData._id",

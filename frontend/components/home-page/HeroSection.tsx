@@ -1,28 +1,64 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Search,
-  Play,
-  Users,
-  BookOpen,
-  Award,
-  GraduationCap,
-  TrendingUp,
+  Code,
+  Github,
+  Chrome,
+  Cpu,
+  Terminal,
+  Smartphone,
+  Layout,
+  Server,
+  Layers,
+  Disc,
+  Wind,
+  Coffee,
 } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
-import { Badge } from "../ui/badge";
-import useCounter from "@/hooks/useCounter";
+import {
+  Globe,
+  BookOpen,
+  Users,
+  Database,
+  Play,
+  Award,
+  Zap,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import Header from "./Header";
+import MultiRingOrbitWithTooltips from "./MultiRingOrbitWithTooltips";
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-
   const stats = [
     { icon: Users, value: "50K+", label: "Active Students" },
     { icon: BookOpen, value: "200+", label: "Expert Courses" },
     { icon: Award, value: "95%", label: "Success Rate" },
   ];
 
+  const rings = [
+    {
+      id: "ring-0",
+      size: "w-[250px] h-[250px]",
+      speed: "animate-[spin_20s_linear_infinite]",
+      icons: [Github, Chrome, Smartphone, Database],
+      color: "from-emerald-400 to-cyan-400",
+    },
+    {
+      id: "ring-1",
+      size: "w-[400px] h-[400px]",
+      speed: "animate-[spin_35s_linear_infinite_reverse]",
+      icons: [Terminal, Layout, Play],
+      color: "from-blue-500 to-indigo-500",
+    },
+    {
+      id: "ring-2",
+      size: "w-[550px] h-[550px]",
+      speed: "animate-[spin_50s_linear_infinite]",
+      icons: [Cpu, Server, Layers, Wind, Zap, Coffee, Globe, Disc],
+      color: "from-amber-400 to-orange-500",
+    },
+  ];
   const trendingTags = [
     "Web Development",
     "Data Science",
@@ -31,185 +67,144 @@ const HeroSection = () => {
     "UI/UX Design",
   ];
 
+  const [isVisible, setIsVisible] = useState(false);
 
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
   return (
-    <section
-      className="relative min-h-[85vh] flex items-center pt-20 pb-16 overflow-hidden
-bg-[url('/bg/bg-3.jpg')] bg-cover bg-center text-white"
-    >
-      {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-purple-light/10" />
-      <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-white/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange/10 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden noise-bg bg-hero">
+      <Header />
+      <div className="absolute top-0 right-10 w-72 h-72 bg-[#2845D6]/20 rounded-full blur-3xl animate-float"></div>
+      <div
+        className="absolute bottom-20 left-10 w-96 h-96 bg-[#06D001]/15 rounded-full blur-3xl"
+        style={{ animationDelay: "3s" }}
+      ></div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-1">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="max-w-2xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6 animate-fade-in">
-              <GraduationCap className="w-4 h-4 text-white" />
-              <span className="text-white text-sm font-medium">
-                #1 Online Learning Platform
+          {/* Left content */}
+          <div
+            className={`space-y-8 ${isVisible ? "opacity-100" : "opacity-0"}`}
+          >
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500/10 via-rose-500/10 to-amber-400/10 border border-rose-400/20 rounded-full px-4 py-2 animate-slide-in-left backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-rose-500" />
+              <span className="text-sm font-semibold bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-600 bg-clip-text text-transparent font-mono">
+                New: AI-Powered Learning Paths
               </span>
             </div>
 
-            {/* Heading */}
-            <h1
-              className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight animate-fade-in"
-              style={{ animationDelay: "0.1s" }}
-            >
-              Skills That{" "}
-              <span className="gradient-text">Drive You Forward</span>
+            <h1 className="font-display text-5xl lg:text-7xl font-black text-white leading-tight animate-slide-up">
+              Master Skills That
+              <span className="block bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(56,189,248,0.35)]">
+                Matter Most
+              </span>
             </h1>
 
-            {/* Description */}
-            <p
-              className="text-lg md:text-xl text-white/80 mb-8 max-w-xl animate-fade-in"
-              style={{ animationDelay: "0.2s" }}
-            >
-              Technology and the world of work change fast — with us, you're
-              faster. Get the skills to achieve goals and stay competitive.
+            <p className="text-xl text-white leading-relaxed animate-slide-up delay-100">
+              Join 50,000+ learners transforming their careers through
+              expert-led courses. From beginner to pro, we've got your learning
+              journey covered.
             </p>
 
-            {/* Search Bar */}
-            <div
-              className="relative mb-6 animate-fade-in"
-              style={{ animationDelay: "0.3s" }}
-            >
-              <div className="relative flex items-center group">
-                {/* Search Icon (left) */}
-                <Search
-                  className="
-      absolute left-5 w-5 h-5
-      text-white/70
-      group-focus-within:text-pink-400
-      transition-colors duration-300
-    "
-                />
+            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200">
+              <Button className="group relative h-14 px-8 text-lg font-bold rounded-xl overflow-hidden bg-gradient-to-r from-emerald-500 via-amber-400 to-blue-600 border-none text-white shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95">
+                <span className="relative z-10 flex items-center gap-3">
+                  Start Learning
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform duration-300" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
+              </Button>
 
-                {/* Input */}
-                <input
-                  type="text"
-                  placeholder="Search for courses, topics, or instructors..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-44 py-4 rounded-full text-white placeholder:text-white/60 bg-gradient-to-r from-purple-500/30 via-indigo-500/2 to-pink-500/30 border border-white/20 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-pink-400/60 focus:border-pink-400/60 transition-all duration-30"
-                />
-                {/* Search Button */}
-                <Button className="cursor-pointer absolute right-2 flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-md shadow-pink-500/30 hover:from-pink-600 hover:to-purple-700 hover:shadow-lg hover:shadow-pink-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
-                  <Search className="w-4 h-4 cursor-pointer" />
-                  <span className="hidden sm:inline ">Search</span>
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                className="h-14 px-8 text-lg font-bold rounded-xl border-2 border-emerald-500/30 bg-white/5 backdrop-blur-md text-white hover:bg-white/10 hover:border-blue-400/50 transition-all duration-300"
+              >
+                <Play className="w-6 h-6 mr-3 text-emerald-400 group-hover:text-blue-400 transition-colors" />
+                Watch Demo
+              </Button>
             </div>
 
-            {/* Trending Tags */}
-            <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              <p className="text-sm text-white/80 mb-3">
-                <span className="font-semibold text-white">Trending:</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {trendingTags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="flex items-center gap-2 px-5 py-4 text-sm font-medium text-white bg-gradient-to-r from-[#8476e0] via-[#9c8dbe] to-[#9c59ef] border-3 border-white/10 rounded-full backdrop-blur-md hover:from-pink-600/40 hover:to-purple-600/40 hover:border-pink-400/40 transition-all duration-30 cursor-pointer"
-                  >
-                    <TrendingUp className="w-4 h-4 text-pink-600" />
-                    {tag}
-                  </Badge>
-                ))}
+            {/* Key metrics */}
+            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-200 animate-slide-up delay-300">
+              <div>
+                <div className="font-display text-3xl font-bold text-white">
+                  50K+
+                </div>
+                <div className="text-sm text-slate-200 mt-1">
+                  Active Students
+                </div>
               </div>
-            </div>
-
-            {/* Stats */}
-            <div
-              className="grid grid-cols-3 gap-6 mt-10 pt-10 border-t border-white/20 animate-fade-in"
-              style={{ animationDelay: "0.5s" }}
-            >
-              {stats.map((stat, index) => {
-                const numericValue = parseInt(stat.value.replace(/\D/g, ""), 10);
-                const count = useCounter(numericValue);
-
-                return (
-                  <div key={index} className="text-center">
-                    <div className="flex justify-center mb-2">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                        <stat.icon className="w-5 h-5 text-white" />
-                      </div>
-                    </div>
-
-                    <div className="text-2xl md:text-3xl font-bold text-white">
-                      {count}
-                      {stat.value}
-                    </div>
-
-                    <div className="text-sm text-white/80">{stat.label}</div>
-                  </div>
-                );
-              })}
+              <div>
+                <div className="font-display text-3xl font-bold text-white">
+                  1,200+
+                </div>
+                <div className="text-sm text-slate-200 mt-1">
+                  Quality Courses
+                </div>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-bold text-white">
+                  4.8★
+                </div>
+                <div className="text-sm text-slate-200 mt-1">
+                  Average Rating
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Content - Hero Image/Cards */}
-          <div className="hidden lg:block relative">
-            <div className="relative">
-              {/* Main card */}
-              <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-8 border border-white/20">
-                <div className="aspect-video bg-gradient-to-br from-white/20 to-purple-light/20 rounded-2xl flex items-center justify-center mb-6">
-                  <Image
-                    src="/images/banner-thumbnail.png"
-                    alt="hero"
-                    width={350}
-                    height={200}
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Watch Demo
-                </h3>
-                <p className="text-white/80">See how our platform works</p>
+          {/* Right visual element */}
+          <div className="relative animate-scale-in delay-200">
+          <MultiRingOrbitWithTooltips/>
+            {/* <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 border-4 border-slate-900 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg mb-6 flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/images/banner-thumbnail.png"
+                  alt="Students learning"
+                  width={400}
+                  height={200}
+                  className=""
+                />
               </div>
-
-              {/* Floating card 1 */}
-              <div className="absolute -left-8 top-1/4 bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-4 border border-white/20 animate-float">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl gradient-white flex items-center justify-center">
-                    <Image
-                      src="/images/course-icon.png"
-                      alt="users"
-                      width={50}
-                      height={50}
-                    />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white"
+                    ></div>
+                  ))}
+                </div>
+                <div className="text-sm">
+                  <div className="font-semibold text-slate-900">
+                    2,450 enrolled this week
                   </div>
-                  <div>
-                    <p className="font-bold text-white">200+</p>
-                    <p className="text-sm text-white/80">Courses</p>
-                  </div>
+                  <div className="text-slate-600">Join the community</div>
                 </div>
               </div>
+              <div className="flex gap-2">
+                <Badge>Live Sessions</Badge>
+                <Badge variant="secondary">Certificate Included</Badge>
+              </div>
+            </div>
 
-              {/* Floating card 2 */}
-              <div
-                className="absolute -right-4 bottom-1/4 bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-4 border border-white/20 animate-float"
-                style={{ animationDelay: "1s" }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl gradient-orange flex items-center justify-center">
-                    <Image
-                      src="/images/users.png"
-                      alt="users"
-                      width={50}
-                      height={50}
-                    />
+            <div className="absolute -top-6 -left-3 bg-white rounded-xl shadow-xl p-4 border-2 border-[#06D001] animate-float z-20">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-[#06D001] rounded-lg flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-900">
+                    Quick Start
                   </div>
-                  <div>
-                    <p className="font-bold text-white">50K+</p>
-                    <p className="text-sm text-white/80">Students</p>
+                  <div className="text-sm text-slate-600">
+                    Begin in 2 minutes
                   </div>
                 </div>
               </div>
             </div>
+            */}
           </div>
         </div>
       </div>

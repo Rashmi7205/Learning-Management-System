@@ -1,19 +1,34 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  X,
-  GraduationCap,
-  ChevronDown,
-  User,
-  ArrowRightIcon,
-} from "lucide-react";
-import Image from "next/image";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMenuOpen]);
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -23,116 +38,134 @@ const Header = () => {
     { name: "Contact", href: "/#contact" },
   ];
 
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <a href="/" className="flex items-center gap-3">
-            <Image
-              src="/images/logo.png"
-              width={50}
-              height={70}
-              alt="Courseloop"
-            />
-            <p className="text-white font-bold text-xl">CourseLoop</p>
-          </a>
+    <>
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "backdrop-blur-lg shadow-md"
+            : "backdrop-blur-md"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center transform rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                <Image
+                  src="/images/logo.png"
+                  height={50}
+                  width={40}
+                  alt="Course Loop"
+                />
+              </div>
+              <span className="font-display text-2xl font-bold text-white">
+                Course Loop
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-white hover:text-white/80 transition-colors font-medium text-[15px]"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Button
-              variant="ghost"
-              asChild
-              className="text-white hover:text-white/80 hover:bg-white/10"
-            >
-              <Link href="/login">
-                <User className="w-4 h-4 mr-2" />
-                Sign In
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              className="cursor-pointer text-white font-bold relative text-[14px] w-[9em] h-[3em] text-center bg-gradient-to-r from-violet-500 from-10% via-sky-500 via-30% to-pink-500 to-90% bg-[length:400%] rounded-[30px] z-10 hover:animate-gradient-xy hover:bg-[length:100%] before:content-[''] before:absolute before:-top-[5px] before:-bottom-[5px] before:-left-[5px] before:-right-[5px] before:bg-gradient-to-r before:from-violet-500 before:from-10% before:via-sky-500 before:via-30% before:to-pink-500 before:bg-[length:400%] before:-z-10 before:rounded-[35px] before:hover:blur-xl before:transition-all before:ease-in-out before:duration-[1s] before:hover:bg-[length:10%] active:bg-violet-700 focus:ring-violet-700"
-            >
-              <Link href="/register" className="flex items-center gap-2">
-                Get Started
-                <ArrowRightIcon className="w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="lg:hidden p-2 rounded-xl hover:bg-white/10 transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? (
-              <X className="w-6 h-6 text-white" />
-            ) : (
-              <Menu className="w-6 h-6 text-white" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <nav className="lg:hidden py-6 border-t border-white/20 animate-fade-in">
-            <div className="flex flex-col gap-2">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-white hover:text-white/80 hover:bg-white/10 transition-colors font-medium py-3 px-4 rounded-xl"
-                  onClick={() => setIsMenuOpen(false)}
+                  className="text-white hover:text-[#2845D6] transition-colors font-medium relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#2845D6] group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              ))}
+              <Button variant="outline" size="sm" className="ml-2 text-white pointer-cursor">
+                Sign In
+              </Button>
+              <Button size="sm" className="pointer-cursor">Get Started</Button>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors pointer-cursor"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6 text-white" />
+              ) : (
+                <Menu className="w-6 h-6 text-white" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <nav className="px-4 py-4 bg-white border-t border-slate-200">
+            <div className="flex flex-col space-y-1">
+              {navLinks.map((link, index) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={handleLinkClick}
+                  className="px-4 py-3 text-white hover:text-[#2845D6] hover:bg-slate-50 rounded-lg transition-all font-medium animate-slide-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-white/20">
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="text-white hover:text-white/80 hover:bg-white/10"
-                >
-                  <Link href="/login">
-                    <User className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Link>
-                </Button>
+            </div>
 
-                <Button
-                  asChild
-                  className="cursor-pointer text-white font-bold relative text-[14px] w-full h-[3em] text-center bg-gradient-to-r from-violet-500 from-10% via-sky-500 via-30% to-pink-500 to-90% bg-[length:400%] rounded-[30px] z-10 hover:animate-gradient-xy hover:bg-[length:100%] before:content-[''] before:absolute before:-top-[5px] before:-bottom-[5px] before:-left-[5px] before:-right-[5px] before:bg-gradient-to-r before:from-violet-500 before:from-10% before:via-sky-500 before:via-30% before:to-pink-500 before:bg-[length:400%] before:-z-10 before:rounded-[35px] before:hover:blur-xl before:transition-all before:ease-in-out before:duration-[1s] before:hover:bg-[length:10%] active:bg-violet-700 focus:ring-violet-700"
-                >
-                  <Link
-                    href="/register"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    Get Started
-                    <ArrowRightIcon className="w-4 h-4" />
-                  </Link>
-                </Button>
-              </div>
+            {/* Mobile CTA Buttons */}
+            <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 ">
+              <Button
+                variant="outline"
+                className="w-full text-white pointer-cursor"
+                onClick={handleLinkClick}
+              >
+                Sign In
+              </Button>
+              <Button className="w-full text-white" onClick={handleLinkClick}>
+                Get Started
+              </Button>
             </div>
           </nav>
-        )}
-      </div>
-    </header>
+        </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* Add animation styles */}
+      <style jsx global>{`
+        @keyframes slide-in {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
+    </>
   );
 };
 

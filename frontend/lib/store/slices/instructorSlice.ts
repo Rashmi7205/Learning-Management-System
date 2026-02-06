@@ -32,7 +32,8 @@ export const fetchFeaturedInstructors = createAsyncThunk(
   "instructor/fetchFeatured",
   async (_, thunkAPI) => {
     try {
-      return await instructorService.getFeaturedInstructors();
+      const data  =  await instructorService.getFeaturedInstructors();
+      return data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || "Failed to load featured instructors",

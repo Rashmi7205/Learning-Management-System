@@ -51,23 +51,6 @@ const MembershipSection = () => {
               </div>
             ))}
           </div>
-
-          {/* Pricing Card */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 max-w-md mx-auto mb-8">
-            <div className="flex items-baseline justify-center gap-2 mb-4">
-              <span className="text-5xl font-bold text-white">$29</span>
-              <span className="text-white/70">/month</span>
-            </div>
-            <p className="text-white/60 text-sm mb-6">
-              Cancel anytime. 30-day money-back guarantee.
-            </p>
-            <Button size="lg" className="btn-orange w-full text-lg">
-              Start Free Trial
-            </Button>
-            <p className="text-white/50 text-xs mt-4">
-              No credit card required for trial
-            </p>
-          </div>
         </div>
       </div>
     </section>
