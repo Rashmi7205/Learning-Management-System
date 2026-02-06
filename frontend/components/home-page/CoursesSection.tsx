@@ -1,44 +1,22 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Star, Clock, BookOpen, Users, ArrowRight } from "lucide-react";
+import { useEffect } from "react";
+import {
+  Star,
+  Clock,
+  BookOpen,
+  Users,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { fetchCourses } from "@/lib/store/slices/courseClice";
+import { fetchCourses } from "@/lib/store/slices/courseClice"; // Note: Check if this should be courseSlice
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { CourseCardData } from "@/lib/types";
 import Link from "next/link";
-
-// Card Components (matching Course Loop design)
-const Card = ({
-  className = "",
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`rounded-xl bg-white border border-slate-200 ${className}`}
-    {...props}
-  >
-    {children}
-  </div>
-);
-
-const CardHeader = ({
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`p-6 ${className}`} {...props} />
-);
-
-const CardContent = ({
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`p-6 pt-0 ${className}`} {...props} />
-);
 
 const CoursesSection = () => {
   const dispatch = useAppDispatch();
-  const courses: CourseCardData[] = useAppSelector((state) => state.courses);
+  const courses = useAppSelector((state) => state.courses);
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -49,160 +27,131 @@ const CoursesSection = () => {
   return (
     <section
       id="courses"
-      className="py-20 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-4">
-            Trending Courses
-          </h2>
-          <p className="text-xl text-slate-200 max-w-2xl mx-auto">
-            Handpicked courses designed by industry experts to help you master
-            in-demand skills
-          </p>
+      className="py-24 bg-[#020617] text-white overflow-hidden"
+    >
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="max-w-2xl">
+            <h2 className="font-display text-4xl lg:text-5xl font-black mb-4">
+              Unlock Your <span className="text-blue-500">Potential</span>
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Expert-led courses designed to take you from beginner to
+              job-ready.
+            </p>
+          </div>
+          <Link href="/courses">
+            <Button
+              variant="ghost"
+              className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+            >
+              Explore Courses <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
         </div>
 
         {/* Course Grid */}
-        {courses.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-500 mb-4">
-              <BookOpen className="w-8 h-8 text-slate-400" />
-            </div>
-            <p className="text-slate-600 text-lg">Loading courses...</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {courses.slice(0, 8).map((course, index) => (
-                <Card
-                  key={course._id}
-                  className="group hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 hover:border-[#2845D6] cursor-pointer animate-slide-up bg-white/20"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {/* Course Image */}
-                  <div className="relative overflow-hidden">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {courses.slice(0, 8).map((course, index) => (
+            <div
+              key={course._id}
+              className="group flex flex-col bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden hover:border-blue-500/50 hover:bg-white/[0.04] transition-all duration-500"
+            >
+              {/* Thumbnail Area */}
+              <div className="relative aspect-video overflow-hidden">
+                <img
+                  src={course.thumbnail?.secureUrl || "/placeholder-course.jpg"}
+                  alt={course.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+
+                {/* Category & Rating Overlay */}
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <Badge className="bg-blue-600/90 text-white backdrop-blur-md border-none text-[10px] font-bold">
+                    {course.category[0] || "Coding"}
+                  </Badge>
+                </div>
+
+                <div className="absolute bottom-3 left-3">
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span className="text-xs font-bold text-white">
+                      {course.averageRating.toFixed(1) || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-5 flex flex-col flex-1">
+                {/* Instructor Row */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="relative">
                     <img
                       src={
-                        course.thumbnail?.secureUrl || "/placeholder-course.jpg"
+                        course.instructor?.user?.avatar?.secureUrl ||
+                        "/placeholder-avatar.jpg"
                       }
-                      alt={course.title}
-                      width={400}
-                      height={300}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                      alt="Instructor"
+                      className="w-8 h-8 rounded-full object-cover border border-white/20"
                     />
-                    {/* Category Badge - Top Left */}
-                    <div className="absolute top-3 left-3">
-                      <Badge className="bg-[#2845D6]/90 text-white border-[#2845D6]/20 backdrop-blur-sm">
-                        {course.category[0] || "General"}
-                      </Badge>
-                    </div>
-                    {/* Price Badge - Top Right */}
-                    <div className="absolute top-3 right-3">
-                      {course.isFree ? (
-                        <Badge
-                          variant="secondary"
-                          className="bg-[#06D001]/90 text-white border-[#06D001]/20 backdrop-blur-sm"
-                        >
-                          Free
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="secondary"
-                          className="bg-white/90 text-slate-700 border-slate-200 backdrop-blur-sm"
-                        >
-                          ${course.price}
-                        </Badge>
-                      )}
+                    <div className="absolute -right-1 -bottom-1 bg-blue-500 rounded-full p-0.5 border border-[#020617]">
+                      <ShieldCheck className="w-2 h-2 text-white" />
                     </div>
                   </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-400 font-medium leading-none mb-1">
+                      Instructor
+                    </span>
+                    <span className="text-sm font-bold text-white truncate w-32">
+                      {course.instructor?.user?.firstName}{" "}
+                      {course.instructor?.user?.lastName}
+                    </span>
+                  </div>
+                </div>
 
-                  {/* Course Info */}
-                  <CardHeader className="pb-3">
-                    <h3 className="font-semibold text-lg text-slate-100 group-hover:text-white transition-colors line-clamp-2 mb-2">
-                      {course.title}
-                    </h3>
+                <h3 className="font-bold text-lg leading-tight mb-4 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                  {course.title}
+                </h3>
 
-                    {/* Instructor */}
-                    <div className="flex items-center gap-2 mt-3">
-                      <img
-                        src={
-                          course?.instructor?.user?.avatar?.secureUrl ||
-                          "/placeholder-avatar.jpg"
-                        }
-                        alt={`${course.instructor.user.firstName} ${course.instructor.user.lastName}`}
-                        width={28}
-                        height={28}
-                        className="w-7 h-7 rounded-full object-cover"
-                      />
-                      <span className="text-sm text-slate-200">
-                        {course.instructor.user.firstName}{" "}
-                        {course.instructor.user.lastName}
-                      </span>
-                    </div>
-                  </CardHeader>
+                {/* Course Stats Card */}
+                <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-white/[0.03] border border-white/5 mb-6 text-xs text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{course.totalLectures || 0} Lessons</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>{course.totalDuration || 0}m</span>
+                  </div>
+                </div>
 
-                  <CardContent>
-                    {/* Meta Info */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-[#d7f22a] text-[#e4f52c]" />
-                        <span className="font-semibold text-sm">
-                          {course.averageRating.toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-slate-200">
-                        <Users className="w-4 h-4" />
-                        <span className="text-sm">
-                          ({course.reviewCount.toString().padStart(2, "0")})
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Lessons and Duration */}
-                    <div className="flex items-center gap-4 text-sm text-slate-200 mb-4">
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span>{course.totalLectures} Lessons</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{course.totalDuration} min</span>
-                      </div>
-                    </div>
-
-                    {/* View Details Button */}
-                    <div className="pt-4 border-t border-slate-100">
-                      <Link href={`/courses/${course._id}`} className="block">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="w-full group/btn hover:bg-[#2845D6] hover:text-white transition-colors"
-                        >
-                          View Details
-                          <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                {/* Price & Action Row */}
+                <div className="mt-auto flex items-center justify-between gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                      Price
+                    </span>
+                    <span className="text-xl font-black text-white">
+                      {course.isFree ? (
+                        <span className="text-green-400">FREE</span>
+                      ) : (
+                        `$${course.price || 0}`
+                      )}
+                    </span>
+                  </div>
+                  <Link href={`/courses/${course._id}`} className="flex-1">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </div>
-
-            {/* View All Courses Button */}
-            <div className="text-center mt-12">
-              <Link href="/courses">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-[#2845D6] text-[#2845D6] hover:bg-[#2845D6] hover:text-white"
-                >
-                  View All Courses
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
     </section>
   );

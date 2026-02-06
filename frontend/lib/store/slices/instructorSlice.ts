@@ -32,7 +32,7 @@ export const fetchFeaturedInstructors = createAsyncThunk(
   "instructor/fetchFeatured",
   async (_, thunkAPI) => {
     try {
-      const data  =  await instructorService.getFeaturedInstructors();
+      const {data}  =  await instructorService.getFeaturedInstructors();
       return data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(

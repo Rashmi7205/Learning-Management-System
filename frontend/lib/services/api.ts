@@ -289,7 +289,7 @@ export const certificateService = {
 // INSTRUCTOR API
 export const instructorService = {
   getFeaturedInstructors :async (limit = 6) => {
-    const response = await apiClient.get<FeaturedInstructor[]>(
+    const response = await apiClient.get(
       "/instructors/featured",
       {
         params: { limit },

@@ -219,17 +219,17 @@ html {
 
 /* Gradient text effect */
 .gradient-text {
-   background: linear-gradient(135deg, #06ffa5 0%, #4ae3c6 50%, #36d1dc 100%);
+  background: linear-gradient(135deg, #06ffa5 0%, #4ae3c6 50%, #36d1dc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.bg-hero{
-  background-image: url('/bg/hero-back.svg');
+.bg-hero {
+  background-image: url("/bg/hero-back.svg");
   background-position: none;
   background-position: center;
-  background-size:cover;
+  background-size: cover;
 }
 
 /* Noise texture overlay */
@@ -550,5 +550,10 @@ html {
   .glass {
     background-color: rgb(255 255 255 / 0.8);
     backdrop-filter: blur(12px);
+  }
+}
+@keyframes shine {
+  100% {
+    left: 125%;
   }
 }

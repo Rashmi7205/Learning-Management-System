@@ -412,9 +412,6 @@ const getCourses = async (req, res, next) => {
 
     const courseStats = await Course.aggregate([
       { $match: query },
-
-      /* ---------------- LOOKUPS ---------------- */
-
       {
         $lookup: {
           from: "enrollments",
@@ -459,9 +456,6 @@ const getCourses = async (req, res, next) => {
           preserveNullAndEmptyArrays: true
         }
       },
-
-      /* ---------------- COMPUTED FIELDS ---------------- */
-
       {
         $addFields: {
           enrollmentCount: { $size: "$enrollments" },
@@ -508,8 +502,6 @@ const getCourses = async (req, res, next) => {
           }
         }
       },
-
-      /* ---------------- PROJECTION ---------------- */
 
       {
         $project: {

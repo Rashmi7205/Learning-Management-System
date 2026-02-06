@@ -18,118 +18,163 @@ const categories = [
     name: "Art & Design",
     count: 45,
     icon: Palette,
-    color: "bg-purple-50 hover:bg-purple-100 border-purple-200",
+    glow: "group-hover:shadow-purple-500/20",
+    iconColor: "text-purple-400",
   },
   {
     id: 2,
     name: "Development",
     count: 78,
     icon: Code,
-    color: "bg-blue-50 hover:bg-blue-100 border-blue-200",
+    glow: "group-hover:shadow-blue-500/20",
+    iconColor: "text-blue-400",
   },
   {
     id: 3,
     name: "Business",
     count: 56,
     icon: TrendingUp,
-    color: "bg-green-50 hover:bg-green-100 border-green-200",
+    glow: "group-hover:shadow-green-500/20",
+    iconColor: "text-green-400",
   },
   {
     id: 4,
     name: "Marketing",
     count: 34,
     icon: Megaphone,
-    color: "bg-orange-50 hover:bg-orange-100 border-orange-200",
+    glow: "group-hover:shadow-orange-500/20",
+    iconColor: "text-orange-400",
   },
   {
     id: 5,
     name: "Photography",
     count: 28,
     icon: Camera,
-    color: "bg-pink-50 hover:bg-pink-100 border-pink-200",
+    glow: "group-hover:shadow-pink-500/20",
+    iconColor: "text-pink-400",
   },
   {
     id: 6,
     name: "Music",
     count: 22,
     icon: Music,
-    color: "bg-yellow-50 hover:bg-yellow-100 border-yellow-200",
+    glow: "group-hover:shadow-yellow-500/20",
+    iconColor: "text-yellow-400",
   },
   {
     id: 7,
     name: "Health & Fitness",
     count: 19,
     icon: Heart,
-    color: "bg-red-50 hover:bg-red-100 border-red-200",
+    glow: "group-hover:shadow-red-500/20",
+    iconColor: "text-red-400",
   },
   {
     id: 8,
     name: "Finance",
     count: 31,
     icon: Briefcase,
-    color: "bg-teal-50 hover:bg-teal-100 border-teal-200",
+    glow: "group-hover:shadow-teal-500/20",
+    iconColor: "text-teal-400",
   },
 ];
 
 const CategoriesSection = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
   return (
-    <section
-      id="categories"
-      className="py-20 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden"
-    >
-      {/* Background Decorative Elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#2845D6] rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#06D001] rounded-full blur-3xl"></div>
-      </div>
+    <>
+      <style jsx global>{`
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">
-            Explore by Category
-          </h2>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Discover courses across diverse fields and find your perfect
-            learning path
-          </p>
+      <section
+        id="categories"
+        className="py-24 bg-[#020617] text-white relative overflow-hidden"
+      >
+        {/* Animated Background Mesh */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
+          <div
+            className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse"
+            style={{ animationDelay: "2s" }}
+          ></div>
         </div>
 
-        {/* Categories Grid - Responsive 2/3/4 columns */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {categories.map((category, index) => {
-            const Icon = category.icon;
-            return (
-              <div
-                key={category.id}
-                className={`${category.color} bg-white rounded-xl p-6 border-2 hover:scale-105 transition-all duration-300 cursor-pointer group animate-scale-in`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-slate-600 group-hover:translate-x-1 transition-transform" />
-                </div>
-
-                <h3 className="font-display text-xl font-bold text-slate-900 mb-2">
-                  {category.name}
-                </h3>
-                <p className="text-slate-600 font-mono text-sm">
-                  {category.count} Courses
-                </p>
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-4xl lg:text-6xl font-black mb-6 tracking-tight">
+                Top{" "}
+                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  Categories
+                </span>
+              </h2>
+              <p className="text-lg text-slate-400 leading-relaxed">
+                Whether you want to build a career or a hobby, we have a path
+                for you.
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="px-6 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium text-slate-300">
+                8 Specialized Fields
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((category, index) => {
+              const Icon = category.icon;
+              return (
+                <div
+                  key={category.id}
+                  className={`group relative bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 transition-all duration-500 cursor-pointer hover:bg-white/[0.07] hover:-translate-y-2 hover:shadow-2xl ${category.glow} animate-scale-in opacity-0`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="flex items-start justify-between mb-8">
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-inner`}
+                    >
+                      <Icon className={`w-7 h-7 ${category.iconColor}`} />
+                    </div>
+                    <div className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                      <ArrowRight className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-2xl font-bold text-white mb-2">
+                      {category.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1 w-1 rounded-full bg-blue-500"></span>
+                      <p className="text-slate-500 font-medium text-sm tracking-wide uppercase">
+                        {category.count} Courses
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Subtle Bottom Glow Line */}
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent group-hover:w-1/2 transition-all duration-500"></div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 
