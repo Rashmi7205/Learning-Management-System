@@ -15,9 +15,7 @@ import { ERROR_MESSAGES } from "../constants/index.js";
 import ApiResponse from "../utils/apiResponse.js";
 import { Instructor } from "../models/user.model.js";
 import User from "../models/user.model.js";
-import generateCertificateHTMLPomise, {
-  generateCertificateHTML,
-} from "../utils/certificate.js";
+import generateCertificateHTMLPomise from "../utils/certificate.js";
 
 import {
   deleteImage,
