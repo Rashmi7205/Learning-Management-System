@@ -1,16 +1,20 @@
 import mongoose from "mongoose";
 import AppError from "../utils/user.error.js";
-import { Course, Section, Enrollment, Lecture } from "../models/course.model.js";
+import {
+  Course,
+  Section,
+  Enrollment,
+  Lecture,
+} from "../models/course.model.js";
 import { Instructor } from "../models/user.model.js";
 import { isBlank } from "../utils/validate.js";
-import ApiResponse from "../utils/ApiResponse.js";
-
+import ApiResponse from "../utils/apiResponse.js";
 
 export const incrementSectionCount = async (courseId, value = 1) => {
   await Course.findByIdAndUpdate(
     courseId,
     { $inc: { totalSections: value } },
-    { new: true }
+    { new: true },
   );
 };
 
@@ -18,7 +22,7 @@ export const createSection = async (req, res) => {
   try {
     const { id } = req.user;
     const { courseId } = req.params;
-    const { title, description,order} = req.body;
+    const { title, description, order } = req.body;
 
     if (!title) {
       return AppError(res, "Section title is required", 400);
@@ -31,15 +35,16 @@ export const createSection = async (req, res) => {
 
     const course = await Course.findOne({
       _id: courseId,
-      instructor: instructor._id
+      instructor: instructor._id,
     });
 
     if (!course) {
       return AppError(res, "Course not found or unauthorized", 404);
     }
 
-    const lastSection = await Section.findOne({ course: courseId })
-      .sort({ order: -1 });
+    const lastSection = await Section.findOne({ course: courseId }).sort({
+      order: -1,
+    });
 
     const nextOrder = order ?? (lastSection ? lastSection.order + 1 : 1);
 
@@ -50,18 +55,16 @@ export const createSection = async (req, res) => {
       order: nextOrder,
       totalLectures: 0,
       totalDuration: 0,
-      isFreePreview: false
+      isFreePreview: false,
     });
-
 
     await incrementSectionCount(courseId, 1);
 
     return ApiResponse(res, {
       statusCode: 201,
       message: "Section created successfully",
-      data: section
+      data: section,
     });
-
   } catch (error) {
     return AppError(res, error.message, 500);
   }
@@ -94,8 +97,9 @@ export const deleteSection = async (req, res) => {
 
     await incrementSectionCount(section.course._id, -1);
 
-    const sections = await Section.find({ course: section.course._id })
-      .sort({ order: 1 });
+    const sections = await Section.find({ course: section.course._id }).sort({
+      order: 1,
+    });
 
     for (let i = 0; i < sections.length; i++) {
       sections[i].order = i + 1;
@@ -104,9 +108,8 @@ export const deleteSection = async (req, res) => {
 
     return ApiResponse(res, {
       statusCode: 200,
-      message: "Section deleted successfully"
+      message: "Section deleted successfully",
     });
-
   } catch (error) {
     return AppError(res, error.message, 500);
   }
@@ -116,7 +119,6 @@ export const updateSection = async (req, res) => {
   try {
     const { id: userId } = req.user;
     const { sectionId } = req.params;
-
 
     if (!userId) {
       return AppError(res, "Unauthorized", 401);
@@ -146,10 +148,7 @@ export const updateSection = async (req, res) => {
       return AppError(res, "Section title cannot be blank", 400);
     }
 
-    if (
-      isFreePreview !== undefined &&
-      typeof isFreePreview !== "boolean"
-    ) {
+    if (isFreePreview !== undefined && typeof isFreePreview !== "boolean") {
       return AppError(res, "isFreePreview must be boolean", 400);
     }
 
@@ -162,9 +161,8 @@ export const updateSection = async (req, res) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Section updated successfully",
-      data: section
+      data: section,
     });
-
   } catch (error) {
     console.log(error);
     return AppError(res, error.message, 500);
@@ -206,7 +204,7 @@ export const reorderSections = async (req, res) => {
     // Fetch course & verify ownership
     const course = await Course.findOne({
       _id: courseId,
-      instructor: instructor._id
+      instructor: instructor._id,
     });
 
     if (!course) {
@@ -217,23 +215,17 @@ export const reorderSections = async (req, res) => {
     const courseSections = await Section.find({ course: courseId });
 
     if (courseSections.length !== sections.length) {
-      return AppError(
-        res,
-        "Section list does not match course sections",
-        400
-      );
+      return AppError(res, "Section list does not match course sections", 400);
     }
 
-    const courseSectionIds = courseSections.map(s =>
-      s._id.toString()
-    );
+    const courseSectionIds = courseSections.map((s) => s._id.toString());
 
     for (const sectionId of sections) {
       if (!courseSectionIds.includes(sectionId)) {
         return AppError(
           res,
           "One or more sections do not belong to this course",
-          403
+          403,
         );
       }
     }
@@ -242,8 +234,8 @@ export const reorderSections = async (req, res) => {
     const bulkOps = sections.map((sectionId, index) => ({
       updateOne: {
         filter: { _id: sectionId },
-        update: { order: index + 1 }
-      }
+        update: { order: index + 1 },
+      },
     }));
 
     // Save all sections
@@ -257,9 +249,8 @@ export const reorderSections = async (req, res) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Sections reordered successfully",
-      data: updatedSections
+      data: updatedSections,
     });
-
   } catch (error) {
     return AppError(res, error.message, 500);
   }
@@ -273,7 +264,7 @@ export const getCourseSections = async (req, res) => {
     }
 
     const course = await Course.findById(courseId).select(
-      "_id status instructor isFree"
+      "_id status instructor isFree",
     );
 
     if (!course) {
@@ -286,23 +277,21 @@ export const getCourseSections = async (req, res) => {
       .sort({ order: 1 })
       .lean();
 
-
-
-    const sectionIds = sections.map(s => s._id);
+    const sectionIds = sections.map((s) => s._id);
 
     const lectureCounts = await Lecture.aggregate([
       { $match: { section: { $in: sectionIds } } },
-      { $group: { _id: "$section", count: { $sum: 1 } } }
+      { $group: { _id: "$section", count: { $sum: 1 } } },
     ]);
 
     const lectureCountMap = {};
-    lectureCounts.forEach(lc => {
+    lectureCounts.forEach((lc) => {
       lectureCountMap[lc._id.toString()] = lc.count;
     });
 
-    sections = sections.map(section => ({
+    sections = sections.map((section) => ({
       ...section,
-      totalLectures: lectureCountMap[section._id.toString()] || 0
+      totalLectures: lectureCountMap[section._id.toString()] || 0,
     }));
 
     return ApiResponse(res, {
@@ -312,10 +301,9 @@ export const getCourseSections = async (req, res) => {
         courseId,
         isEnrolled,
         totalSections: sections.length,
-        sections
-      }
+        sections,
+      },
     });
-
   } catch (error) {
     return AppError(res, error.message, 500);
   }
