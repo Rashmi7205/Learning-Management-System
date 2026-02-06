@@ -65,7 +65,7 @@ export function Sidebar({
           {isCollapsed ? (
             <div>
               <Image
-                src="/images/logo-bright.png"
+                src="/images/logo.png"
                 alt="CourseLoop Logo"
                 width={32}
                 height={32}
@@ -75,7 +75,7 @@ export function Sidebar({
           ) : (
             <div className="flex items-center justify-evenly">
               <Image
-                src="/images/logo-bright.png"
+                src="/images/logo.png"
                 alt="CourseLoop Logo"
                 width={32}
                 height={32}

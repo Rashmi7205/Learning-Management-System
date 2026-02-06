@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AuthUI } from "../layout";
 import { useAuth } from "@/lib/store/hooks";
+import AuthUI from "../layout";
 
 
 export default function LoginPage() {
@@ -21,7 +21,7 @@ export default function LoginPage() {
   return (
     <AuthUI
       mode="signin"
-      logoSrc="./images/logo.png"
+      logoSrc="/images/logo.png"
       backLink={{
         text: "Back to website",
         href: "/",

@@ -30,7 +30,7 @@ courseRouter.post(
     { name: "thumbnail", maxCount: 1 },
     { name: "promoVideo", maxCount: 1 },
   ]),
-  createCourse
+  createCourse,
 );
 //   getCourses
 courseRouter.get("/", getCourses);
@@ -43,14 +43,14 @@ courseRouter.put(
     { name: "thumbnail", maxCount: 1 },
     { name: "promoVideo", maxCount: 1 },
   ]),
-  updateCourse
+  updateCourse,
 );
 //   deleteCourse,
 courseRouter.delete(
   "/:courseId",
   isLoggedIn,
   isAdminOrInstructor,
-  deleteCourse
+  deleteCourse,
 );
 //   getFeaturedCourses,
 courseRouter.get("/featured", getFeaturedCourses);
@@ -58,7 +58,7 @@ courseRouter.get("/featured", getFeaturedCourses);
 courseRouter.get(
   "/instructor/:instructorId",
   isLoggedIn,
-  getCoursesByInstructor
+  getCoursesByInstructor,
 );
 //   publishCourse,
 courseRouter.put("/publish/:courseId", isLoggedIn, isInstructor, publishCourse);
@@ -75,7 +75,7 @@ courseRouter.post("/:courseId/certificate", isLoggedIn, generateCertificate);
 courseRouter.get(
   "/:courseId/verify-certificate",
   isLoggedIn,
-  verifyCertificate
+  verifyCertificate,
 );
 // getCoursesByStudent
 courseRouter.get("/student/:studentId", isLoggedIn, getCoursesByStudent);

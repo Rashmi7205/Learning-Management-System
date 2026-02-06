@@ -31,9 +31,44 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface FeaturedInstructor {
+  _id: string;
+  user: {
+    avatar: {
+      publicId: string;
+      secureUrl: string;
+    };
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  title: string;
+  website: string;
+  linkedin: string;
+  twitter: string;
+  youtube: string;
+  rating: number;
+  totalReviews: number;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Instructor {
   _id: string;
-  user: string;
+  user: {
+    avatar?: {
+      publicId?: string;
+      secureUrl?: string;
+    };
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    bio: string;
+    phone: string;
+    office: string;
+  };
   title?: string;
   expertise: string[];
   yearsOfExperience?: number;
@@ -94,6 +129,54 @@ export interface Course {
   archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+export interface CourseCardData {
+  _id: string;
+
+  title: string;
+  subtitle: string;
+  description: string;
+
+  instructor: {
+    _id: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      avatar: {
+        publicId: string;
+        secureUrl: string;
+      };
+    };
+  };
+
+  category: string[];
+
+  thumbnail: {
+    publicId: string;
+    secureUrl: string;
+  };
+
+  price: number;
+  discountPrice: number;
+  currency: "INR" | "USD" | "EUR";
+  isFree: boolean;
+
+  status: "draft" | "published" | "archived";
+  publishedAt: string; // ISO date string
+
+  slug: string;
+  totalSections: number;
+  totalLectures: number;
+  totalDuration: number;
+  isFeatured: boolean;
+  bestseller: boolean;
+
+  createdAt: string; // ISO date string
+
+  enrollmentCount: number;
+  reviewCount: number;
+  averageRating: number;
+  completionRate: number;
 }
 
 export interface Section {

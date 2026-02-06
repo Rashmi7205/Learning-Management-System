@@ -1,13 +1,15 @@
 "use client";
 
-import { AuthUI } from "../layout";
+import AuthUI from "../layout";
+
+
 
 
 export default function RegisterPage() {
   return (
     <AuthUI
       mode="signup"
-      logoSrc="./images/logo.png"
+      logoSrc="images/logo.png"
       backLink={{
         text: "Back to website",
         href: "/",

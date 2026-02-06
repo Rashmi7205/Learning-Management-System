@@ -263,11 +263,11 @@ const updateCourse = async (req, res) => {
 };
 
 // getCourseById
-const getCourseById = async (req, res, next) => {
+const getCourseById = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    if (!courseId || !new mongoose.Types.ObjectId.isValid(courseId)) {
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return AppError(res, "Invalid Course ID", 400);
     }
 
@@ -288,7 +288,7 @@ const getCourseById = async (req, res, next) => {
           as: "instructor",
         },
       },
-      { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$instructor" },
       {
         $lookup: {
           from: "users",
@@ -321,18 +321,28 @@ const getCourseById = async (req, res, next) => {
           title: 1,
           subtitle: 1,
           description: 1,
+          whatYouWillLearn: 1,
+          requirements: 1,
           slug: 1,
           category: 1,
+
           thumbnail: 1,
+          promoVideo: 1,
+
           price: 1,
           discountPrice: 1,
           currency: 1,
           isFree: 1,
+
           status: 1,
           isFeatured: 1,
           bestseller: 1,
           publishedAt: 1,
           createdAt: 1,
+
+          totalSections: 1,
+          totalLectures: 1,
+          totalDuration: 1,
 
           reviewCount: 1,
           averageRating: 1,
@@ -362,6 +372,7 @@ const getCourseById = async (req, res, next) => {
       data: course,
     });
   } catch (error) {
+    console.log(error);
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
@@ -388,9 +399,6 @@ const getCourses = async (req, res, next) => {
 
     const courseStats = await Course.aggregate([
       { $match: query },
-
-      /* ---------------- LOOKUPS ---------------- */
-
       {
         $lookup: {
           from: "enrollments",
@@ -435,9 +443,6 @@ const getCourses = async (req, res, next) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-
-      /* ---------------- COMPUTED FIELDS ---------------- */
-
       {
         $addFields: {
           enrollmentCount: { $size: "$enrollments" },
@@ -482,8 +487,6 @@ const getCourses = async (req, res, next) => {
         },
       },
 
-      /* ---------------- PROJECTION ---------------- */
-
       {
         $project: {
           title: 1,
@@ -507,14 +510,12 @@ const getCourses = async (req, res, next) => {
           averageRating: 1,
           completionRate: 1,
 
+          totalSections: 1,
+          totalLectures: 1,
+          totalDuration: 1,
+
           instructor: {
             _id: "$instructorData._id",
-            title: "$instructorData.title",
-            expertise: "$instructorData.expertise",
-            rating: "$instructorData.rating",
-            totalStudents: "$instructorData.totalStudents",
-            totalCourses: "$instructorData.totalCourses",
-            isFeatured: "$instructorData.isFeatured",
             user: {
               firstName: "$instructorUser.firstName",
               lastName: "$instructorUser.lastName",

@@ -11,6 +11,7 @@ import type {
   PaginatedResponse,
   LoginResponse,
   RegisterResponse,
+  FeaturedInstructor,
 } from "@/lib/types";
 
 // Auth API calls
@@ -287,6 +288,19 @@ export const certificateService = {
 
 // INSTRUCTOR API
 export const instructorService = {
+  getFeaturedInstructors :async (limit = 6) => {
+    const response = await apiClient.get(
+      "/instructors/featured",
+      {
+        params: { limit },
+      }
+    );
+    return response.data;
+  },
+  getProfileData : async ()=>{
+     const response = await apiClient.get("/instructors/");
+    return response.data;
+  },
   getDashboard: async () => {
     const response = await apiClient.get("/instructors/dashboard");
     return response.data;

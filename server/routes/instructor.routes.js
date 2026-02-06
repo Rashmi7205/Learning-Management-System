@@ -6,10 +6,12 @@ import {
   requestPayout,updateTaxInfo,getVerificationStatus,
   getRatingsBreakdown,getAllInstructors,searchInstructors,
   adminVerifyInstructor,toggleFeaturedInstructor,suspendInstructor,unsuspendInstructor,
+  getFeaturedInstructors,
 } from "../controller/instructor.controller.js";
 
 const istRoutes = Router();
 
+istRoutes.get("/featured", getFeaturedInstructors);
 istRoutes.post("/",isLoggedIn,createInstructorProfile);
 istRoutes.get("/profile",isLoggedIn,isAdminOrInstructor,getMyInstructorProfile);
 istRoutes.put("/me",isLoggedIn,isAdminOrInstructor,updateInstructorProfile);
