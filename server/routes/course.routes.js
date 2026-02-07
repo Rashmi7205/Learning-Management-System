@@ -27,6 +27,7 @@ courseRouter.delete("/:courseId", isLoggedIn, isAdminOrInstructor, deleteCourse)
 //   getFeaturedCourses,
 courseRouter.get("/featured",getFeaturedCourses);
 courseRouter.get("/categories", getCourseCategories);
+courseRouter.get("/:courseId", getCourseById);
 //   getCoursesByInstructor,
 courseRouter.get("/instructor/:instructorId",isLoggedIn,getCoursesByInstructor);
 //   publishCourse,
@@ -35,5 +36,5 @@ courseRouter.put("/publish/:courseId", isLoggedIn, isInstructor,publishCourse);
 courseRouter.put("/pricing/:courseId", isLoggedIn, isInstructor, updatePricing);
 // archive course
 courseRouter.put("/:courseId/archive", isLoggedIn, isInstructor, archiveCourse);
-courseRouter.get("/:courseId", getCourseById);
+
 export default courseRouter;

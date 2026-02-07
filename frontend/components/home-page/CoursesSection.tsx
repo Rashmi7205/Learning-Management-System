@@ -126,7 +126,7 @@ const CoursesSection = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>{course.totalDuration || 0}m</span>
+                    <span>{course.totalDuration || 0} hours</span>
                   </div>
                 </div>
 
@@ -140,12 +140,19 @@ const CoursesSection = () => {
                       {course.isFree ? (
                         <span className="text-green-400">FREE</span>
                       ) : (
-                        `$${course.price || 0}`
+                        `₹${course.price || 0}`
                       )}
                     </span>
                   </div>
-                  <Link href={`/courses/${course._id}`} className="flex-1">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20">
+                  <Link
+                    href={`/courses/${course.title
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .replace(/\s+/g, "-")}?cid=${course._id}`}
+                    className="flex-1"
+                  >
+                    <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 cursor-pointer">
                       View Details
                     </Button>
                   </Link>

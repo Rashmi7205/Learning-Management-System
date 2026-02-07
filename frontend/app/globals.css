@@ -120,7 +120,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
-body {
+*,body {
   font-family: "Work Sans", sans-serif;
 }
 

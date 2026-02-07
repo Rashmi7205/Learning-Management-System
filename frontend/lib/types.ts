@@ -62,41 +62,77 @@ export interface Instructor {
       secureUrl?: string;
     };
     _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    bio: string;
-    phone: string;
-    office: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    bio?: string;
+    phone?: string;
+    office?: string;
   };
   title?: string;
-  expertise: string[];
+  expertise?: string[];
   yearsOfExperience?: number;
   education?: string;
-  certifications: string[];
+  certifications?: string[];
   website?: string;
   linkedin?: string;
   twitter?: string;
   youtube?: string;
   rating: number;
-  totalReviews: number;
-  totalStudents: number;
-  totalCourses: number;
-  totalEarnings: number;
-  pendingPayout: number;
+  totalReviews?: number;
+  totalStudents?: number;
+  totalCourses?: number;
+  totalEarnings?: number;
+  pendingPayout?: number;
   payoutMethod?: string;
-  identityVerified: boolean;
-  isFeatured: boolean;
-  isSuspended: boolean;
+  identityVerified?: boolean;
+  isFeatured?: boolean;
+  isSuspended?: boolean;
   suspensionReason?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // Course Types
 export interface Media {
   publicId: string;
   secureUrl: string;
+}
+
+export interface Attachment {
+  filename: string;
+  publicId: string;
+  secureUrl: string;
+}
+
+export interface Lecture {
+  _id: string;
+  section?: string;
+  title: string;
+  description?: string;
+  videoUrl?: Media;
+  videoProvider?: string;
+  duration?: number;
+  attachments?: Attachment[];
+  isPreview?: boolean;
+  isDownloadable?: boolean;
+  order: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Section {
+  _id: string;
+  course?: string;
+  title: string;
+  description?: string;
+  order?: number;
+  totalLectures?: number;
+  totalDuration?: number;
+  isFreePreview?: boolean;
+  lectures?: Lecture[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Course {
@@ -106,29 +142,49 @@ export interface Course {
   description: string;
   whatYouWillLearn: string[];
   requirements: string[];
-  instructor: string;
+  instructor: Instructor;
   category: string[];
   thumbnail?: Media;
   promoVideo?: Media;
   price: number;
   discountPrice?: number;
-  currency: string;
-  isFree: boolean;
-  totalSections: number;
-  totalLectures: number;
-  totalDuration: number;
-  rating: number;
-  totalReviews: number;
-  status: "draft" | "review" | "published" | "rejected";
+  currency?: string;
+  status?: "draft" | "review" | "published" | "rejected";
+  isFree?: boolean;
+  totalSections?: number;
+  totalLectures?: number;
+  totalDuration?: number;
+  rating?: number;
+  totalReviews?: number;
   publishedAt?: Date;
-  slug: string;
-  isFeatured: boolean;
-  bestseller: boolean;
-  previewLectures: string[];
-  isArchived: boolean;
+  slug?: string;
+  isFeatured?: boolean;
+  bestseller?: boolean;
+  previewLectures?: string[];
+  isArchived?: boolean;
   archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Extended interface for course details with populated sections
+export interface CourseDetailsData extends Omit<Course, "instructor"> {
+  instructor: Instructor;
+  sections: Section[];
+  reviewCount?: number;
+  averageRating?: number;
+}
+
+export interface CourseWithSections extends Course {
+  sections: SectionWithLectures[];
+  reviewCount: number;
+  averageRating: number;
+}
+
+export interface SectionWithLectures extends Section {
+  lectures: Lecture[];
+  totalLectures: number;
+  totalDuration: number;
 }
 export interface CourseCardData {
   _id: string;
@@ -177,41 +233,6 @@ export interface CourseCardData {
   reviewCount: number;
   averageRating: number;
   completionRate: number;
-}
-
-export interface Section {
-  _id: string;
-  course: string;
-  title: string;
-  description?: string;
-  order: number;
-  totalLectures: number;
-  totalDuration: number;
-  isFreePreview: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Attachment {
-  filename: string;
-  publicId: string;
-  secureUrl: string;
-}
-
-export interface Lecture {
-  _id: string;
-  section: string;
-  title: string;
-  description?: string;
-  videoUrl?: Media;
-  videoProvider?: string;
-  duration: number;
-  attachments: Attachment[];
-  isPreview: boolean;
-  isDownloadable: boolean;
-  order: number;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface Enrollment {

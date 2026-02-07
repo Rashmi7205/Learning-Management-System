@@ -11,8 +11,8 @@ import type {
   PaginatedResponse,
   LoginResponse,
   RegisterResponse,
-  FeaturedInstructor,
   CourseCardData,
+  CourseDetailsData,
 } from "@/lib/types";
 
 // Auth API calls
@@ -102,7 +102,7 @@ export const courseService = {
   },
 
   getById: async (id: string) => {
-    const response = await apiClient.get<Course>(`/courses/${id}`);
+    const response = await apiClient.get<CourseDetailsData>(`/courses/${id}`);
     return response.data;
   },
 

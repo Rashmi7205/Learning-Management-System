@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import Header from "./Header";
 import MultiRingOrbitWithTooltips from "./MultiRingOrbitWithTooltips";
+import Link from "next/link";
 
 const HeroSection = () => {
   const stats = [
@@ -109,10 +110,12 @@ const HeroSection = () => {
 
             <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200">
               <Button className="group relative h-14 px-8 text-lg font-bold rounded-xl overflow-hidden bg-gradient-to-r from-emerald-500 via-amber-400 to-blue-600 border-none text-white shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95">
-                <span className="relative z-10 flex items-center gap-3">
+                <Link
+                  href="/courses"
+                className="relative z-10 flex items-center gap-3">
                   Start Learning
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform duration-300" />
-                </span>
+                </Link>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
               </Button>
 

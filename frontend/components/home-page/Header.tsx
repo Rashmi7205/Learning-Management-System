@@ -88,11 +88,11 @@ const Header = () => {
                   </span>
                 )}
               </Link>
-              <Link href="/login">
+              <Link href="/login" >
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="relative text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300 group"
+                  className="relative text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300 group cursor-pointer"
                 >
                   <LogIn className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                   <span>Sign In</span>
@@ -101,7 +101,7 @@ const Header = () => {
               <Link href="/register">
                 <Button
                   size="sm"
-                  className="relative group overflow-hidden bg-slate-950 text-white border border-white/10 px-6 h-9 transition-all duration-300 hover:border-purple-500/50"
+                  className="relative group overflow-hidden bg-slate-950 text-white border border-white/10 px-6 h-9 transition-all duration-300 hover:border-purple-500/50 cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <span className="relative z-10 flex items-center gap-2 font-semibold tracking-wide">

@@ -227,8 +227,8 @@ const updateCourse = async (req, res) => {
 const getCourseById = async (req, res) => {
   try {
     const { courseId } = req.params;
-
-    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+    console.log(courseId);
+  if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return AppError(res, "Invalid Course ID", 400);
     }
 
@@ -264,43 +264,74 @@ const getCourseById = async (req, res) => {
           from: "sections",
           localField: "_id",
           foreignField: "course",
-          as: "sections"
-        }
-      },
-      {
-        $lookup: {
-          from: "lectures",
-          localField: "_id",
-          foreignField: "section",
-          as: "lectures"
-        }
-      },
-      {
-        $addFields: {
-          sections: {
-            $map: {
-              input: "$sections",
-              as: "section",
-              in: {
-                _id: "$$section._id",
-                title: "$$section.title",
-                description: "$$section.description",
-                order: "$$section.order",
-                isFreePreview: "$$section.isFreePreview",
-                totalLectures: "$$section.totalLectures",
-                totalDuration: "$$section.totalDuration",
-                lectures: {
-                  $filter: {
-                    input: "$lectures",
-                    as: "lecture",
-                    cond: {
-                      $eq: ["$$lecture.section", "$$section._id"]
+          as: "sections",
+          pipeline: [
+            {
+              $lookup: {
+                from: "lectures",
+                localField: "_id",
+                foreignField: "section",
+                as: "lectures",
+                let: { sectionIsFreePreview: "$isFreePreview" }, // Pass section's isFreePreview to lectures
+                pipeline: [
+                  {
+                    $sort: { order: 1 }
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                      description: 1,
+                      duration: 1,
+                      order: 1,
+                      isDownloadable: 1,
+                      attachments: 1,
+                      // Show isPreview based on both lecture.isPreview AND section.isFreePreview
+                      isPreview: {
+                        $and: ["$isPreview", "$$sectionIsFreePreview"]
+                      },
+                      // Only include videoUrl if BOTH lecture.isPreview AND section.isFreePreview are true
+                      videoUrl: {
+                        $cond: {
+                          if: { $and: ["$isPreview", "$$sectionIsFreePreview"] },
+                          then: "$videoUrl",
+                          else: "$$REMOVE"
+                        }
+                      },
+                      videoProvider: {
+                        $cond: {
+                          if: { $and: ["$isPreview", "$$sectionIsFreePreview"] },
+                          then: "$videoProvider",
+                          else: "$$REMOVE"
+                        }
+                      }
                     }
                   }
-                }
+                ]
+              }
+            },
+            {
+              $addFields: {
+                totalLectures: { $size: "$lectures" },
+                totalDuration: { $sum: "$lectures.duration" }
+              }
+            },
+            {
+              $sort: { order: 1 }
+            },
+            {
+              $project: {
+                _id: 1,
+                title: 1,
+                description: 1,
+                order: 1,
+                isFreePreview: 1,
+                totalLectures: 1,
+                totalDuration: 1,
+                lectures: 1
               }
             }
-          }
+          ]
         }
       },
       {
@@ -319,10 +350,10 @@ const getCourseById = async (req, res) => {
           },
           totalSections: { $size: "$sections" },
           totalLectures: {
-            $size: "$lectures"
+            $sum: "$sections.totalLectures"
           },
           totalDuration: {
-            $sum: "$lectures.duration"
+            $sum: "$sections.totalDuration"
           }
         }
       },
@@ -364,7 +395,13 @@ const getCourseById = async (req, res) => {
             rating: "$instructor.rating",
             totalStudents: "$instructor.totalStudents",
             totalCourses: "$instructor.totalCourses",
+            totalReviews: "$instructor.totalReviews",
             isFeatured: "$instructor.isFeatured",
+            bio: "$instructor.bio",
+            website: "$instructor.website",
+            linkedin: "$instructor.linkedin",
+            twitter: "$instructor.twitter",
+            youtube: "$instructor.youtube",
             user: {
               _id: "$instructorUser._id",
               firstName: "$instructorUser.firstName",
@@ -377,7 +414,6 @@ const getCourseById = async (req, res) => {
         }
       }
     ]);
-
 
     return ApiResponse(res, {
       statusCode: 200,
