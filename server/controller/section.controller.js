@@ -3,7 +3,7 @@ import AppError from "../utils/user.error.js";
 import { Course, Section, Enrollment, Lecture } from "../models/course.model.js";
 import { Instructor } from "../models/user.model.js";
 import { isBlank } from "../utils/validate.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 
 export const incrementSectionCount = async (courseId, value = 1) => {
@@ -18,7 +18,7 @@ export const createSection = async (req, res) => {
   try {
     const { id } = req.user;
     const { courseId } = req.params;
-    const { title, description,order} = req.body;
+    const { title, description, order } = req.body;
 
     if (!title) {
       return AppError(res, "Section title is required", 400);

@@ -228,7 +228,7 @@ const getCourseById = async (req, res) => {
   try {
     const { courseId } = req.params;
     console.log(courseId);
-  if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return AppError(res, "Invalid Course ID", 400);
     }
 
@@ -272,7 +272,7 @@ const getCourseById = async (req, res) => {
                 localField: "_id",
                 foreignField: "section",
                 as: "lectures",
-                let: { sectionIsFreePreview: "$isFreePreview" }, // Pass section's isFreePreview to lectures
+                let: { sectionIsFreePreview: "$isFreePreview" },
                 pipeline: [
                   {
                     $sort: { order: 1 }
@@ -290,7 +290,6 @@ const getCourseById = async (req, res) => {
                       isPreview: {
                         $and: ["$isPreview", "$$sectionIsFreePreview"]
                       },
-                      // Only include videoUrl if BOTH lecture.isPreview AND section.isFreePreview are true
                       videoUrl: {
                         $cond: {
                           if: { $and: ["$isPreview", "$$sectionIsFreePreview"] },
@@ -418,7 +417,7 @@ const getCourseById = async (req, res) => {
     return ApiResponse(res, {
       statusCode: 200,
       message: "Course Data fetched",
-      data: course
+      data: course[0]
     })
   } catch (error) {
     console.log(error);

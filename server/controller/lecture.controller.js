@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 import AppError from "../utils/user.error.js";
 import { deleteAttachment, deleteVideo, uploadAttachment, uploadVideo } from "../services/s3.js";
 import { Lecture, Section } from "../models/course.model.js";

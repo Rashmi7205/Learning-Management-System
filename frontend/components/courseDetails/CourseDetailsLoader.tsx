@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function Loading() {
+export default function CourseDetailsLoader() {
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200">
       {/* Skeleton Header */}
