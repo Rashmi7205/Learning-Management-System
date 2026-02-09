@@ -264,201 +264,202 @@ const getCourseById = async (req, res) => {
     const { courseId } = req.params;
     console.log(courseId);
     if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
-    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
-      return AppError(res, "Invalid Course ID", 400);
-    }
+      if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+        return AppError(res, "Invalid Course ID", 400);
+      }
 
-    const courseObjectId = new mongoose.Types.ObjectId(courseId);
+      const courseObjectId = new mongoose.Types.ObjectId(courseId);
 
-    const course = await Course.aggregate([
-      {
-        $match: {
-          _id: courseObjectId,
-          isArchived: { $ne: true },
+      const course = await Course.aggregate([
+        {
+          $match: {
+            _id: courseObjectId,
+            isArchived: { $ne: true },
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "instructors",
-          localField: "instructor",
-          foreignField: "_id",
-          as: "instructor",
+        {
+          $lookup: {
+            from: "instructors",
+            localField: "instructor",
+            foreignField: "_id",
+            as: "instructor",
+          },
         },
-      },
-      { $unwind: "$instructor" },
-      {
-        $lookup: {
-          from: "users",
-          localField: "instructor.user",
-          foreignField: "_id",
-          as: "instructorUser",
+        { $unwind: "$instructor" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "instructor.user",
+            foreignField: "_id",
+            as: "instructorUser",
+          },
         },
-      },
-      { $unwind: "$instructorUser" },
-      {
-        $lookup: {
-          from: "sections",
-          localField: "_id",
-          foreignField: "course",
-          as: "sections",
-          pipeline: [
-            {
-              $lookup: {
-                from: "lectures",
-                localField: "_id",
-                foreignField: "section",
-                as: "lectures",
-                let: { sectionIsFreePreview: "$isFreePreview" },
-                pipeline: [
-                  {
-                    $sort: { order: 1 },
-                  },
-                  {
-                    $project: {
-                      _id: 1,
-                      title: 1,
-                      description: 1,
-                      duration: 1,
-                      order: 1,
-                      isDownloadable: 1,
-                      attachments: 1,
-                      // Show isPreview based on both lecture.isPreview AND section.isFreePreview
-                      isPreview: {
-                        $and: ["$isPreview", "$$sectionIsFreePreview"],
-                      },
-                      videoUrl: {
-                        $cond: {
-                          if: {
-                            $and: ["$isPreview", "$$sectionIsFreePreview"],
-                          },
-                          then: "$videoUrl",
-                          else: "$$REMOVE",
+        { $unwind: "$instructorUser" },
+        {
+          $lookup: {
+            from: "sections",
+            localField: "_id",
+            foreignField: "course",
+            as: "sections",
+            pipeline: [
+              {
+                $lookup: {
+                  from: "lectures",
+                  localField: "_id",
+                  foreignField: "section",
+                  as: "lectures",
+                  let: { sectionIsFreePreview: "$isFreePreview" },
+                  pipeline: [
+                    {
+                      $sort: { order: 1 },
+                    },
+                    {
+                      $project: {
+                        _id: 1,
+                        title: 1,
+                        description: 1,
+                        duration: 1,
+                        order: 1,
+                        isDownloadable: 1,
+                        attachments: 1,
+                        // Show isPreview based on both lecture.isPreview AND section.isFreePreview
+                        isPreview: {
+                          $and: ["$isPreview", "$$sectionIsFreePreview"],
                         },
-                      },
-                      videoProvider: {
-                        $cond: {
-                          if: {
-                            $and: ["$isPreview", "$$sectionIsFreePreview"],
+                        videoUrl: {
+                          $cond: {
+                            if: {
+                              $and: ["$isPreview", "$$sectionIsFreePreview"],
+                            },
+                            then: "$videoUrl",
+                            else: "$$REMOVE",
                           },
-                          then: "$videoProvider",
-                          else: "$$REMOVE",
+                        },
+                        videoProvider: {
+                          $cond: {
+                            if: {
+                              $and: ["$isPreview", "$$sectionIsFreePreview"],
+                            },
+                            then: "$videoProvider",
+                            else: "$$REMOVE",
+                          },
                         },
                       },
                     },
-                  },
-                ],
+                  ],
+                },
+              },
+              {
+                $addFields: {
+                  totalLectures: { $size: "$lectures" },
+                  totalDuration: { $sum: "$lectures.duration" },
+                },
+              },
+              {
+                $sort: { order: 1 },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  title: 1,
+                  description: 1,
+                  order: 1,
+                  isFreePreview: 1,
+                  totalLectures: 1,
+                  totalDuration: 1,
+                  lectures: 1,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $lookup: {
+            from: "reviews",
+            localField: "_id",
+            foreignField: "course",
+            as: "reviews",
+          },
+        },
+        {
+          $addFields: {
+            reviewCount: { $size: "$reviews" },
+            averageRating: {
+              $ifNull: [{ $avg: "$reviews.rating" }, 0],
+            },
+            totalSections: { $size: "$sections" },
+            totalLectures: {
+              $sum: "$sections.totalLectures",
+            },
+            totalDuration: {
+              $sum: "$sections.totalDuration",
+            },
+          },
+        },
+        {
+          $project: {
+            title: 1,
+            subtitle: 1,
+            description: 1,
+            whatYouWillLearn: 1,
+            requirements: 1,
+            slug: 1,
+            category: 1,
+
+            thumbnail: 1,
+            promoVideo: 1,
+
+            price: 1,
+            discountPrice: 1,
+            currency: 1,
+            isFree: 1,
+
+            status: 1,
+            isFeatured: 1,
+            bestseller: 1,
+            publishedAt: 1,
+            createdAt: 1,
+
+            totalSections: 1,
+            totalLectures: 1,
+            totalDuration: 1,
+
+            reviewCount: 1,
+            averageRating: 1,
+
+            instructor: {
+              _id: "$instructor._id",
+              title: "$instructor.title",
+              expertise: "$instructor.expertise",
+              rating: "$instructor.rating",
+              totalStudents: "$instructor.totalStudents",
+              totalCourses: "$instructor.totalCourses",
+              totalReviews: "$instructor.totalReviews",
+              isFeatured: "$instructor.isFeatured",
+              bio: "$instructor.bio",
+              website: "$instructor.website",
+              linkedin: "$instructor.linkedin",
+              twitter: "$instructor.twitter",
+              youtube: "$instructor.youtube",
+              user: {
+                _id: "$instructorUser._id",
+                firstName: "$instructorUser.firstName",
+                lastName: "$instructorUser.lastName",
+                avatar: "$instructorUser.avatar",
               },
             },
-            {
-              $addFields: {
-                totalLectures: { $size: "$lectures" },
-                totalDuration: { $sum: "$lectures.duration" },
-              },
-            },
-            {
-              $sort: { order: 1 },
-            },
-            {
-              $project: {
-                _id: 1,
-                title: 1,
-                description: 1,
-                order: 1,
-                isFreePreview: 1,
-                totalLectures: 1,
-                totalDuration: 1,
-                lectures: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $lookup: {
-          from: "reviews",
-          localField: "_id",
-          foreignField: "course",
-          as: "reviews",
-        },
-      },
-      {
-        $addFields: {
-          reviewCount: { $size: "$reviews" },
-          averageRating: {
-            $ifNull: [{ $avg: "$reviews.rating" }, 0],
-          },
-          totalSections: { $size: "$sections" },
-          totalLectures: {
-            $sum: "$sections.totalLectures",
-          },
-          totalDuration: {
-            $sum: "$sections.totalDuration",
+
+            sections: 1,
           },
         },
-      },
-      {
-        $project: {
-          title: 1,
-          subtitle: 1,
-          description: 1,
-          whatYouWillLearn: 1,
-          requirements: 1,
-          slug: 1,
-          category: 1,
+      ]);
 
-          thumbnail: 1,
-          promoVideo: 1,
-
-          price: 1,
-          discountPrice: 1,
-          currency: 1,
-          isFree: 1,
-
-          status: 1,
-          isFeatured: 1,
-          bestseller: 1,
-          publishedAt: 1,
-          createdAt: 1,
-
-          totalSections: 1,
-          totalLectures: 1,
-          totalDuration: 1,
-
-          reviewCount: 1,
-          averageRating: 1,
-
-          instructor: {
-            _id: "$instructor._id",
-            title: "$instructor.title",
-            expertise: "$instructor.expertise",
-            rating: "$instructor.rating",
-            totalStudents: "$instructor.totalStudents",
-            totalCourses: "$instructor.totalCourses",
-            totalReviews: "$instructor.totalReviews",
-            isFeatured: "$instructor.isFeatured",
-            bio: "$instructor.bio",
-            website: "$instructor.website",
-            linkedin: "$instructor.linkedin",
-            twitter: "$instructor.twitter",
-            youtube: "$instructor.youtube",
-            user: {
-              _id: "$instructorUser._id",
-              firstName: "$instructorUser.firstName",
-              lastName: "$instructorUser.lastName",
-              avatar: "$instructorUser.avatar",
-            },
-          },
-
-          sections: 1,
-        },
-      },
-    ]);
-
-    return ApiResponse(res, {
-      statusCode: 200,
-      message: "Course Data fetched",
-      data: course,
-    });
+      return ApiResponse(res, {
+        statusCode: 200,
+        message: "Course Data fetched",
+        data: course,
+      });
+    }
   } catch (error) {
     console.log(error);
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
@@ -1375,9 +1376,7 @@ export const completeLecture = async (req, res) => {
   }
 };
 
-// update the review
-import { Review, Enrollment, Course } from "../models/index.js";
-import mongoose from "mongoose";
+// update the review;
 
 export const createReview = async (req, res) => {
   try {

@@ -11,6 +11,9 @@ import {
   updatePricing,
   archiveCourse,
   getCourseCategories,
+  createReview,
+  generateCertificate,
+  verifyCertificate,
 } from "../controller/course.controller.js";
 import isLoggedIn, {
   isAdmin,
@@ -18,6 +21,7 @@ import isLoggedIn, {
   isInstructor,
 } from "../middlewares/auth.user.js";
 import upload from "../middlewares/multer.middleware.js";
+import { Progress } from "../models/course.model.js";
 
 const courseRouter = Router();
 // createCourse
@@ -77,4 +81,18 @@ courseRouter.post("/:courseId/verify", isLoggedIn, verifyCertificate);
 courseRouter.put("/:courseId/complete", isLoggedIn, completeLecture);
 // create review
 courseRouter.post("/:courseId/review", isLoggedIn, createReview);
+
+// generate certificate
+courseRouter.post("/:courseId/certificate", isLoggedIn, generateCertificate);
+//verify certificate
+courseRouter.post("/:courseId/verify", isLoggedIn, verifyCertificate);
+// enroll course
+courseRouter.post("/:courseId/enroll", isLoggedIn, enrollCourse);
+// completeLecture
+courseRouter.put("/:courseId/complete", isLoggedIn, completeLecture);
+// progress
+courseRouter.get("/:courseId/progress", isLoggedIn, Progress);
+// review
+courseRouter.post("/:courseId/reviews", isLoggedIn, createReview);
+
 export default courseRouter;
