@@ -1,7 +1,7 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { Course, Enrollment, Progress } from "../models/course.model.js";
-import  User, { Instructor } from "../models/user.model.js";
+import User, { Instructor } from "../models/user.model.js";
 import Order from "../models/order.model.js";
 import AppError from "../utils/user.error.js";
 import mongoose from "mongoose";
@@ -131,7 +131,7 @@ export const createOrderAndInitializePayment = async (req, res) => {
     // Calculate order totals
     const subtotal = orderItems.reduce((sum, item) => sum + item.finalPrice, 0);
     const totalDiscount = orderItems.reduce((sum, item) => sum + item.discountAmount, 0);
-    const totalAmount = parseFloat((subtotal ).toFixed(2));
+    const totalAmount = parseFloat((subtotal).toFixed(2));
 
     const orderNumber = generateOrderNumber();
 

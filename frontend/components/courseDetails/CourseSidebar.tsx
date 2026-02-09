@@ -1,8 +1,9 @@
 import { Heart, Share2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CourseDetailsData } from "@/lib/types";
 
 interface SidebarProps {
-  course: any;
+  course: CourseDetailsData;
   features: any[];
   isWishlisted: boolean;
   onWishlistToggle: () => void;
@@ -19,30 +20,30 @@ export const CourseSidebar = ({
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/20 blur-[60px] rounded-full pointer-events-none" />
 
       <div className="flex items-baseline gap-3 mb-8">
-        <span className="text-5xl font-black text-white">${course.price}</span>
+        <span className="text-5xl font-black text-white">₹{course.discountPrice}</span>
         <span className="text-xl text-slate-500 line-through">
-          ${course.originalPrice}
+          ₹{course.price}
         </span>
       </div>
 
       <div className="space-y-4 mb-8">
-        <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-14 rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+        <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-14 rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/20 transition-all active:scale-95 cursor-pointer">
           Enroll Now
         </Button>
         <div className="grid grid-cols-2 gap-4">
           <Button
             variant="outline"
             onClick={onWishlistToggle}
-            className={`h-12 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 transition-all ${isWishlisted ? "text-red-500 border-red-500/50" : "text-white"}`}
+            className={`cursor-pointer h-12 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 transition-all ${isWishlisted ? "text-red-500 border-red-500/50" : "text-white "}`}
           >
             <Heart
-              className={`w-5 h-5 mr-2 ${isWishlisted ? "fill-current" : ""}`}
+              className={`cursor-pointer w-5 h-5 mr-2 ${isWishlisted ? "fill-current" : ""}`}
             />{" "}
             Wishlist
           </Button>
           <Button
             variant="outline"
-            className="h-12 rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all"
+            className="h-12 rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
           >
             <Share2 className="w-5 h-5 mr-2" /> Share
           </Button>

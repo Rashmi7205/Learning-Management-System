@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FileQuestion, ArrowLeft, Home } from "lucide-react";
 
-export default function NotFound() {
+export default function CourseNotFound() {
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Decorative Glow */}

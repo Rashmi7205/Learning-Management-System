@@ -13,6 +13,7 @@ import type {
   RegisterResponse,
   CourseCardData,
   CourseDetailsData,
+  ApiResponse,
 } from "@/lib/types";
 
 // Auth API calls
@@ -102,7 +103,7 @@ export const courseService = {
   },
 
   getById: async (id: string) => {
-    const response = await apiClient.get<CourseDetailsData>(`/courses/${id}`);
+    const response = await apiClient.get<ApiResponse<CourseDetailsData>>(`/courses/${id}`);
     return response.data;
   },
 

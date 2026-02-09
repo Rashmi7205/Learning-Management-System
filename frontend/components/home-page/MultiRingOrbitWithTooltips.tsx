@@ -1,73 +1,98 @@
 "use client";
 
 import {
-  Globe,
-  Code,
-  GitBranch,
-  Users,
-  Video,
-  Podcast,
-  FileCode,
-  Chrome,
-  Terminal,
-  Coffee,
-  Heart,
-  Apple,
-  Monitor,
-  Cpu,
+  Brain,
+  Building2,
+  Server,
+  Code2,
+  Cloud,
+  Binary,
   Database,
-  Zap,
+  Palette,
+  GitBranch,
+  Layout,
+  Globe,
+  Layers,
+  FileCode,
+  Bot,
   Smartphone,
+  Terminal,
+  Shield,
+  Network,
+  Figma,
+  Monitor,
+  Blocks,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
 const MultiRingOrbitWithTooltips = () => {
-  // FIXED: Explicitly allow number or null to prevent the build error
   const [hoveredRing, setHoveredRing] = useState<number | null>(null);
   const [centerHovered, setCenterHovered] = useState(false);
-
   const rings = [
     {
       size: 12,
       speed: 40,
       items: [
-        { icon: GitBranch, bg: "#333333", color: "#fff", name: "Git" },
-        { icon: Code, bg: "#059669", color: "#fff", name: "Code" },
-        { icon: Users, bg: "#e11d48", color: "#fff", name: "Meetup" },
-        { icon: FileCode, bg: "#4b5563", color: "#fff", name: "CodePen" },
+        { icon: Brain, bg: "#8b5cf6", color: "#fff", name: "AI" },
+        { icon: Database, bg: "#ef4444", color: "#fff", name: "Databases" },
+        { icon: Binary, bg: "#f59e0b", color: "#fff", name: "DSA" },
+        { icon: Bot, bg: "#6366f1", color: "#fff", name: "Machine Learning" },
       ],
     },
     {
       size: 20,
       speed: 50,
       items: [
-        { icon: Podcast, bg: "#dc2626", color: "#fff", name: "Podcast" },
-        { icon: FileCode, bg: "#2563eb", color: "#fff", name: "CSS3" },
-        { icon: Code, bg: "#ea580c", color: "#fff", name: "HTML5" },
+        { icon: Layout, bg: "#06b6d4", color: "#fff", name: "Frontend" },
+        { icon: Server, bg: "#10b981", color: "#fff", name: "Backend" },
+        { icon: Palette, bg: "#ec4899", color: "#fff", name: "Design" },
+        { icon: Figma, bg: "#f472b6", color: "#fff", name: "UI/UX" },
+        {
+          icon: Smartphone,
+          bg: "#22c55e",
+          color: "#fff",
+          name: "Mobile Development",
+        },
+        { icon: Cloud, bg: "#3b82f6", color: "#fff", name: "Cloud Computing" },
       ],
     },
     {
       size: 30,
       speed: 65,
       items: [
-        { icon: Monitor, bg: "#0ea5e9", color: "#fff", name: "Windows" },
-        { icon: Apple, bg: "#1f2937", color: "#fff", name: "Safari" },
-        { icon: Chrome, bg: "#2563eb", color: "#fff", name: "Edge" },
-        { icon: Cpu, bg: "#111827", color: "#fff", name: "Linux" },
-        { icon: Apple, bg: "#374151", color: "#fff", name: "Apple" },
-        { icon: Chrome, bg: "#d97706", color: "#fff", name: "Chrome" },
-        { icon: Smartphone, bg: "#16a34a", color: "#fff", name: "Android" },
-        { icon: Database, bg: "#1d4ed8", color: "#fff", name: "Firefox" },
+        { icon: FileCode, bg: "#facc15", color: "#000", name: "JavaScript" },
+        { icon: Terminal, bg: "#84cc16", color: "#000", name: "Programming" },
+        { icon: GitBranch, bg: "#f97316", color: "#fff", name: "DevOps" },
+        {
+          icon: Monitor,
+          bg: "#14b8a6",
+          color: "#fff",
+          name: "Web Applications",
+        },
+        {
+          icon: Code2,
+          bg: "#14b8a6",
+          color: "#fff",
+          name: "Backend Development",
+        },
+        {
+          icon: Globe,
+          bg: "#0ea5e9",
+          color: "#fff",
+          name: "Frontend Development",
+        },
+        { icon: Globe, bg: "#06b6d4", color: "#fff", name: "Web Development" },
+        { icon: Network, bg: "#0891b2", color: "#fff", name: "System Design" },
       ],
     },
     {
       size: 40,
       speed: 80,
       items: [
-        { icon: Coffee, bg: "#15803d", color: "#fde047", name: "Coffee" },
-        { icon: Terminal, bg: "#000000", color: "#4ade80", name: "Terminal" },
-        { icon: Heart, bg: "#991b1b", color: "#fff", name: "Love" },
+        { icon: Layout, bg: "#06b6d4", color: "#fff", name: "Frontend" },
+        { icon: Server, bg: "#10b981", color: "#fff", name: "Backend" },
+        { icon: Palette, bg: "#ec4899", color: "#fff", name: "Design" },
       ],
     },
   ];

@@ -163,8 +163,8 @@ export interface Course {
   previewLectures?: string[];
   isArchived?: boolean;
   archivedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Extended interface for course details with populated sections
@@ -442,6 +442,11 @@ export interface RegisterResponse {
   success: boolean;
   message: string;
   user: User;
+}
+export interface ApiResponse<T> {
+    success:boolean,
+    message:string,
+    data?:T;
 }
 
 // Pagination

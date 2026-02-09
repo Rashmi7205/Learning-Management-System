@@ -293,21 +293,21 @@ const updateProfile = async (req, res, next) => {
         user.country = country;
 
         // File Upload To Cloudinary
-        if(req.file){
+        if (req.file) {
             try {
-            if(user.avatar.publicId && user.avatar.publicId !== "#"){
+                if (user.avatar.publicId && user.avatar.publicId !== "#") {
                     //delete existing image
                     await deleteImage(user.avatar.publicId);
-            }
-            const {publicId,secureUrl} = await uploadImage(req.file?.path);
-                if(publicId && secureUrl){
+                }
+                const { publicId, secureUrl } = await uploadImage(req.file?.path);
+                if (publicId && secureUrl) {
                     user.avatar.publicId = publicId;
                     user.avatar.secureUrl = secureUrl;
                 }
             } catch (e) {
                 //remove the uploaded file from temp folder in case of error
                 fs.rmSync(req.file?.path);
-                return AppError(res,'file not uploaded try again',500);
+                return AppError(res, 'file not uploaded try again', 500);
             }
         }
 
@@ -366,8 +366,8 @@ const sendEmailOtp = async (req, res, next) => {
 const sendPhoneOtp = async (req, res, next) => {
     try {
         const { phone } = req.body;
-        const {id} = req.user;
-        if(!id){
+        const { id } = req.user;
+        if (!id) {
             return AppError(res, ERROR_MESSAGES.UNAUTHORIZED, 400);
         }
         if (isBlank(phone)) {
