@@ -49,12 +49,12 @@ export const CourseHero = ({ course }: { course: CourseDetailsData }) => (
           <div className="flex items-center gap-4">
             <Avatar className="w-12 h-12 border-2 border-blue-500/50 p-0.5 bg-transparent">
               <AvatarImage
-                src={course.instructor.user.avatar?.secureUrl}
-                alt={`${course.instructor.user.firstName}'s avatar`}
+                src={course?.instructor?.user?.avatar?.secureUrl}
+                alt={`${course?.instructor?.user?.firstName}'s avatar`}
                 className="rounded-full object-cover"
               />
               <AvatarFallback className="bg-slate-800 text-blue-400 font-bold">
-                {course.instructor.user.firstName?.charAt(0)}
+                {course?.instructor?.user?.firstName?.charAt(0)}
               </AvatarFallback>
             </Avatar>
 
@@ -63,7 +63,7 @@ export const CourseHero = ({ course }: { course: CourseDetailsData }) => (
                 Created by
               </p>
               <p className="text-white font-semibold underline decoration-blue-500/50 underline-offset-4 cursor-pointer hover:text-blue-400 transition-colors">
-                {course.instructor.user.firstName}
+                {course.instructor?.user?.firstName}
               </p>
             </div>
           </div>

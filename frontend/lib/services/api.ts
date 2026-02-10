@@ -14,6 +14,13 @@ import type {
   CourseCardData,
   CourseDetailsData,
   ApiResponse,
+  CartResponse,
+  AddToCartRequest,
+  MoveToWishlistRequest,
+  WishlistResponse,
+  AddToWishlistRequest,
+  MoveToCartRequest,
+  CartSummaryResponse,
 } from "@/lib/types";
 
 // Auth API calls
@@ -396,6 +403,85 @@ export const usersService = {
 
   getInstructor: async (id: string) => {
     const response = await apiClient.get<Instructor>(`/instructors/${id}`);
+    return response.data;
+  },
+};
+
+export const cartService = {
+  getCart: async () => {
+    const response = await apiClient.get<CartResponse>("/cart");
+    return response.data;
+  },
+  addToCart: async (data: AddToCartRequest) => {
+    const response = await apiClient.post<CartResponse>("/cart/add", data);
+    return response.data;
+  },
+  removeFromCart: async (courseId: string) => {
+    const response = await apiClient.delete<CartResponse>(
+      `/cart/remove/${courseId}`
+    );
+    return response.data;
+  },
+  clearCart: async () => {
+    const response = await apiClient.delete<CartResponse>("/cart/clear");
+    return response.data;
+  },
+  moveToWishlist: async (data: MoveToWishlistRequest) => {
+    const response = await apiClient.post<{
+      success: boolean;
+      message: string;
+      cart: {
+        items: any[];
+        itemCount: number;
+        wishlistItems: any[];
+        wishlistCount: number;
+      };
+    }>("/cart/move-to-wishlist", data);
+    return response.data;
+  },
+
+
+  getWishlist: async () => {
+    const response = await apiClient.get<WishlistResponse>("/cart/wishlist");
+    return response.data;
+  },
+  addToWishlist: async (data: AddToWishlistRequest) => {
+    const response = await apiClient.post<WishlistResponse>(
+      "/cart/wishlist/add",
+      data
+    );
+    return response.data;
+  },
+
+  removeFromWishlist: async (courseId: string) => {
+    const response = await apiClient.delete<WishlistResponse>(
+      `/cart/wishlist/remove/${courseId}`
+    );
+    return response.data;
+  },
+
+  clearWishlist: async () => {
+    const response = await apiClient.delete<WishlistResponse>(
+      "/cart/wishlist/clear"
+    );
+    return response.data;
+  },
+
+  moveToCart: async (data: MoveToCartRequest) => {
+    const response = await apiClient.post<{
+      success: boolean;
+      message: string;
+      cart: {
+        items: any[];
+        itemCount: number;
+        wishlistItems: any[];
+        wishlistCount: number;
+      };
+    }>("/cart/wishlist/move-to-cart", data);
+    return response.data;
+  },
+  getSummary: async () => {
+    const response = await apiClient.get<CartSummaryResponse>("/summary");
     return response.data;
   },
 };

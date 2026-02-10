@@ -20,15 +20,25 @@ export interface User {
   gender?: string;
   dob?: Date;
   country?: string;
-  emailVerified: boolean;
-  phoneVerified: boolean;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
   notificationSettings?: Record<string, any>;
-  darkMode: boolean;
-  totalCoursesEnrolled: number;
-  totalCoursesCompleted: number;
-  totalLearningTime: number;
-  createdAt: Date;
-  updatedAt: Date;
+  darkMode?: boolean;
+  totalCoursesEnrolled?: number;
+  totalCoursesCompleted?: number;
+  totalLearningTime?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+export interface UpdateProfileData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  bio: string;
+  gender: string;
+  dob: string;
+  country: string;
 }
 
 export interface FeaturedInstructor {
@@ -465,4 +475,105 @@ export interface PaginatedResponse<T> {
 export interface Category {
   name: string;
   count: number;
+}
+
+export interface CartItem {
+  course: {
+    _id: string;
+    title: string;
+    subtitle: string;
+    thumbnail?: {
+      publicId: string;
+      secureUrl: string;
+    };
+    price: number;
+    discountPrice?: number;
+    instructor: {
+      _id: string;
+      user: {
+        _id: string;
+        firstName: string;
+        lastName: string;
+      };
+    };
+    category: string[];
+    averageRating?: number;
+    reviewCount?: number;
+    isFree?: boolean;
+  };
+  addedAt: string;
+}
+
+export interface WishlistItem {
+  course: {
+    _id: string;
+    title: string;
+    subtitle: string;
+    thumbnail?: {
+      publicId: string;
+      secureUrl: string;
+    };
+    price: number;
+    discountPrice?: number;
+    instructor: {
+      _id: string;
+      user: {
+        _id: string;
+        firstName: string;
+        lastName: string;
+      };
+    };
+    category: string[];
+    averageRating?: number;
+    reviewCount?: number;
+    isFree?: boolean;
+  };
+  addedAt: string;
+}
+
+export interface Cart {
+  items: CartItem[];
+  itemCount: number;
+  total: number;
+}
+
+export interface Wishlist {
+  items: WishlistItem[];
+  itemCount: number;
+}
+
+export interface CartSummary {
+  cartCount: number;
+  wishlistCount: number;
+}
+
+export interface CartResponse {
+  success: boolean;
+  cart: Cart;
+}
+
+export interface WishlistResponse {
+  success: boolean;
+  wishlist: Wishlist;
+}
+
+export interface CartSummaryResponse {
+  success: boolean;
+  summary: CartSummary;
+}
+
+export interface AddToCartRequest {
+  courseId: string;
+}
+
+export interface AddToWishlistRequest {
+  courseId: string;
+}
+
+export interface MoveToWishlistRequest {
+  courseId: string;
+}
+
+export interface MoveToCartRequest {
+  courseId: string;
 }

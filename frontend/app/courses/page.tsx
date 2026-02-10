@@ -20,7 +20,11 @@ import Header from "@/components/home-page/Header";
 import Footer from "@/components/home-page/Footer";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { getAllCategoryList, getCoursesList } from "@/lib/store/slices/courseClice";
+import {
+  getAllCategoryList,
+  getCoursesList,
+} from "@/lib/store/slices/courseClice";
+import Link from "next/link";
 
 function Courses() {
   const dispatch = useAppDispatch();
@@ -47,7 +51,7 @@ function Courses() {
         category: selectedCategories,
       }),
     );
-    if(categories.length==0){
+    if (categories.length == 0) {
       dispatch(getAllCategoryList());
     }
   }, [dispatch, searchQuery, selectedCategories]);
@@ -273,7 +277,6 @@ function Courses() {
   );
 }
 
-// CourseCard remains largely the same but uses your dynamic data
 function CourseCard({ course, viewMode }: { course: any; viewMode: string }) {
   return (
     <div
@@ -316,20 +319,45 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: string }) {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/5">
-          <span className="text-xl font-black text-white">
+        <div className="flex items-center justify-between mt-5 pt-5 border-t border-white/10">
+          {/* Price Section */}
+          <div className="flex flex-col">
             {course.isFree ? (
-              <span className="text-emerald-400">Free</span>
+              <span className="text-2xl font-black text-emerald-400 tracking-tight">
+                Free
+              </span>
             ) : (
-              `$${course.price}`
+              <div className="flex flex-col">
+                {course.discountPrice > 0 && (
+                  <span className="text-xs text-slate-500 line-through decoration-red-500/50">
+                    {course.currency === "INR" ? "₹" : "$"}
+                    {course.price}
+                  </span>
+                )}
+                <span className="text-2xl font-black text-white tracking-tight">
+                  {course.currency === "INR" ? "₹" : "$"}
+                  {course.discountPrice > 0
+                    ? course.discountPrice
+                    : course.price}
+                </span>
+              </div>
             )}
-          </span>
-          <Button
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-500 rounded-xl"
+          </div>
+
+          {/* Action Button */}
+          <Link
+            href={`/courses/${course.title
+              .toLowerCase()
+              .trim()
+              .replace(/[^\w\s-]/g, "") 
+              .replace(/[\s_-]+/g, "-")
+              .replace(/^-+|-+$/g, "")}?cid=${course._id}`}
+            className="ml-4"
           >
-            Enroll Now
-          </Button>
+            <Button className="px-6 py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+              View Details
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

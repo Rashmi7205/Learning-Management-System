@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginUser, registerUser } from "@/lib/store/slices/authSlice";
+import { fetchUserProfile, loginUser, registerUser } from "@/lib/store/slices/authSlice";
 
 // Typewriter Component
 export function Typewriter({ text, speed = 60, cursor = "_" }: any) {
@@ -53,11 +53,14 @@ export default function AuthUI({
     (state) => state.auth,
   );
 
+
   useEffect(() => {
     if (isAuthenticated && user) {
       router.push(
-        user.role === "instructor" ? "/instructor/dashboard" : "/dashboard",
+        user.role === "instructor" ? "/instructor/dashboard" : "/learner/dashboard",
       );
+    }else{
+      dispatch(fetchUserProfile());
     }
   }, [isAuthenticated, user, router]);
 
@@ -76,7 +79,12 @@ export default function AuthUI({
 
         <Link href="/" className="relative z-10 flex items-center gap-2">
           <div className="w-10 h-10 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="font-black text-white">CL</span>
+            <Image
+            src="/images/logo.png"
+            width={40}
+            height={40}
+            alt="CourseLoop"
+            />
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
             CourseLoop

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import apiClient from "@/lib/api-client";
-import type { User } from "@/lib/types";
+import type { UpdateProfileData, User } from "@/lib/types";
 
 // Types
 export interface AuthState {
@@ -118,15 +118,39 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
+// Update User Profile (without image)
 export const updateUserProfile = createAsyncThunk(
   "auth/updateUserProfile",
-  async (updateData: Partial<User>, { rejectWithValue }) => {
+  async (updateData: UpdateProfileData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put("/auth/update", updateData);
+      const response = await apiClient.put("/auth/update-profile", updateData);
       return response.data.user;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to update profile."
+        error.response?.data?.message || "Failed to update profile.",
+      );
+    }
+  },
+);
+
+// Update User Avatar/Profile Image
+export const updateUserAvatar = createAsyncThunk(
+  "auth/updateUserAvatar",
+  async (imageFile: File, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", imageFile);
+
+      const response = await apiClient.put("/auth/update-avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data.avatar;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update profile image."
       );
     }
   }
@@ -264,14 +288,6 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
     },
-    initializeAuth: (state) => {
-      const token = localStorage.getItem(
-        process.env.NEXT_PUBLIC_JWT_TOKEN_KEY || "courseloop_token"
-      );
-      if (token) {
-        state.isAuthenticated = true;
-      }
-    },
   },
   extraReducers: (builder) => {
     // Login
@@ -340,8 +356,8 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Update Profile
     builder
+      // Update User Profile
       .addCase(updateUserProfile.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -349,9 +365,26 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
-        state.successMessage = "Profile updated successfully!";
+        state.error = null;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Update User Avatar
+      .addCase(updateUserAvatar.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateUserAvatar.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (state.user) {
+          state.user.avatar = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(updateUserAvatar.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
@@ -477,6 +510,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, clearSuccess, setUser, initializeAuth } =
+export const { clearError, clearSuccess, setUser} =
   authSlice.actions;
 export default authSlice.reducer;

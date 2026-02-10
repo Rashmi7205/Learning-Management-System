@@ -1,14 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, LogIn, Menu, X, ShoppingCart } from "lucide-react"; // Added ShoppingCart
+import { ArrowRight, LogIn, Menu, X, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@/lib/store/hooks";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [cartCount, setCartCount] = useState(2); // Example count
+  const cartCount = useAppSelector((state)=>state.cart.itemCount);
 
   useEffect(() => {
     const handleScroll = () => {

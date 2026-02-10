@@ -66,46 +66,6 @@ export default function CourseDetailsPage() {
       console.log(error);
     }
   };
-
-  // Mock data (This would eventually come from your getCourseDetails fetch)
-  const course = {
-    title: "Complete Web Development Bootcamp 2024",
-    subtitle:
-      "Learn HTML, CSS, JavaScript, React, Node.js, and More - Build 15 Real Projects",
-    rating: 4.9,
-    reviewCount: 12453,
-    students: 85234,
-    instructor: {
-      name: "Sarah Chen",
-      title: "Senior Full-Stack Developer",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      bio: "Sarah is a seasoned software engineer with over a decade of experience in building scalable web applications.",
-      reviews: 45000,
-      students: 125000,
-      rating: 4.8,
-    },
-    price: 89.99,
-    originalPrice: 199.99,
-    thumbnail:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=600&fit=crop",
-    language: "English",
-    category: "Development",
-  };
-
-  const curriculum = [
-    {
-      id: "section-1",
-      title: "Getting Started",
-      lectures: 12,
-      duration: "2h 30m",
-      lessons: [
-        { title: "Course Introduction", duration: "05:32", preview: true },
-        { title: "Environment Setup", duration: "15:23", preview: false },
-      ],
-    },
-    // ... rest of curriculum
-  ];
-
   const features = [
     { icon: Clock, text: "60 hours on-demand video" },
     { icon: Smartphone, text: "Access on mobile and TV" },
@@ -188,7 +148,7 @@ export default function CourseDetailsPage() {
                               What you'll learn
                             </h4>
                             <ul className="grid sm:grid-cols-2 gap-4">
-                              {courseData.whatYouWillLearn.map((item, i) => (
+                              {courseData?.whatYouWillLearn?.map((item, i) => (
                                 <li
                                   key={i}
                                   className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 group hover:border-blue-500/30 transition-colors"
@@ -227,8 +187,6 @@ export default function CourseDetailsPage() {
                   <CourseSidebar
                     course={courseData}
                     features={features}
-                    isWishlisted={isWishlisted}
-                    onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
                   />
                 </div>
               </div>

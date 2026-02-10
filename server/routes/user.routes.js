@@ -12,7 +12,8 @@ import {
   sendPhoneOtp,
   verifyEmail,
   verifyPhone,
-  getUserOrders
+  getUserOrders,
+  updateProfileImage
 } from "../controller/user.controller.js";
 import isLoggedIn from "../middlewares/auth.user.js";
 import upload from "../middlewares/multer.middleware.js";
@@ -152,7 +153,11 @@ router.get("/profile", isLoggedIn, getProfile);
  *       200:
  *         description: Profile updated successfully
  */
-router.put("/update", isLoggedIn, upload.single("avatar"), updateProfile);
+// Update profile 
+router.put("/update-profile", isLoggedIn, updateProfile);
+
+// Update profile image only
+router.put("/update-avatar", isLoggedIn, upload.single("avatar"), updateProfileImage);
 
 /* ================= FORGOT PASSWORD ================= */
 /**

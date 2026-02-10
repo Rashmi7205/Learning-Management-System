@@ -22,8 +22,6 @@ export function EmailVerificationBanner({
 
   const handleResendVerification = async () => {
     try {
-      // Call your resend verification endpoint
-      // await api.post("/auth/resend-verification", { email });
       alert("Verification email sent! Please check your inbox.");
     } catch (error) {
       alert("Failed to resend verification email.");

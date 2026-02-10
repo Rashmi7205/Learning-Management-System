@@ -138,8 +138,9 @@ export function Navbar({
                   {/* Menu Items */}
                   <div className="py-2">
                     <Link
-                  href="/profile"
-                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors">
+                      href="/learner/profile"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                    >
                       <User size={18} />
                       <span>View Profile</span>
                     </Link>

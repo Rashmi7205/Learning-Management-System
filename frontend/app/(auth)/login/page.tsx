@@ -21,6 +21,7 @@ export default function LoginPage() {
   const dispatch = useDispatch<any>();
   const { isLoading, error } = useAuth();
 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -32,10 +33,9 @@ export default function LoginPage() {
     );
 
     if (result.meta.requestStatus === "fulfilled") {
-      // Direct users based on their role
       const role = result.payload.user.role;
       router.push(
-        role === "instructor" ? "/instructor/dashboard" : "/dashboard",
+        role === "instructor" ? "/instructor/dashboard" : "/learner/dashboard",
       );
     }
   };
@@ -88,7 +88,7 @@ export default function LoginPage() {
               required
             />
             <button
-              type="button"
+              type="submit"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
             >
@@ -104,9 +104,10 @@ export default function LoginPage() {
         )}
 
         <Button
-          type="submit"
+          type="button"
           disabled={isLoading}
-          className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98]"
+          className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] cursor-pointer"
+          onClick={handleLogin}
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

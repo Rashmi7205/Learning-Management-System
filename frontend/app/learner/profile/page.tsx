@@ -1,489 +1,107 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/store/hooks";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { updateUserProfile } from "@/lib/store/slices/authSlice";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
-import {
-  AlertCircle,
-  CheckCircle,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Users,
-} from "lucide-react";
+import { CheckCircle, AlertCircle, Edit3 } from "lucide-react";
+import { ProfileOverview } from "@/components/dashboard/ProfileOverview";
+import { ProfileForm } from "@/components/dashboard/ProfileForm";
+import { UpdateProfileData } from "@/lib/types";
 
-interface ProfileFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  bio: string;
-  gender: string;
-  dob: string;
-  country: string;
-}
 
 export default function ProfilePage() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const [formData, setFormData] = useState<ProfileFormData>({
+  const [formData, setFormData] = useState<UpdateProfileData>({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
     phone: user?.phone || "",
     bio: user?.bio || "",
     gender: user?.gender || "",
-    dob: user?.dob ? (typeof user.dob === 'string' ? user.dob : user.dob.toISOString().split('T')[0]) : "",
+    dob: user?.dob ? new Date(user.dob).toISOString().split("T")[0] : "",
     country: user?.country || "",
   });
 
-  React.useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      router.push("/login");
-    }
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) router.push("/login");
   }, [isAuthenticated, isLoading, router]);
 
-  if (!user && isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader />
-          <p className="mt-4 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading && !user) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-
     try {
-      const dataToSubmit = {
-        ...formData,
-        dob: formData.dob ? new Date(formData.dob) : undefined,
-      };
-      const result = await dispatch(updateUserProfile(dataToSubmit) as any);
-
+      const result = await dispatch(updateUserProfile(formData) as any);
       if (result.payload) {
-        setSuccessMessage("Profile updated successfully!");
+        setMessage({ type: 'success', text: "Profile updated successfully!" });
         setIsEditing(false);
-        setTimeout(() => setSuccessMessage(""), 3000);
+        setTimeout(() => setMessage(null), 3000);
       }
-    } catch (error: any) {
-      setErrorMessage(
-        error.message || "Failed to update profile. Please try again.",
-      );
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || "Failed to update" });
     }
   };
 
-  const handleCancel = () => {
-    setFormData({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-      bio: user?.bio || "",
-      gender: user?.gender || "",
-      dob: user?.dob ? (typeof user.dob === 'string' ? user.dob : user.dob.toISOString().split('T')[0]) : "",
-      country: user?.country || "",
-    });
-    setIsEditing(false);
-    setErrorMessage("");
-  };
-
-  const getInitials = (firstName?: string, lastName?: string) => {
-    const name = `${firstName || ""} ${lastName || ""}`.trim();
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const initials = `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            My Profile
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your account information
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-transparent py-12">
+      <div className="max-w-4xl mx-auto px-6">
+        <header className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-foreground">Settings</h1>
+            <p className="text-muted-foreground mt-1">Manage your public profile and account details</p>
+          </div>
+          {!isEditing && (
+            <Button onClick={() => setIsEditing(true)} className="rounded-full shadow-lg">
+              <Edit3 className="w-4 h-4 mr-2" /> Edit Profile
+            </Button>
+          )}
+        </header>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-            <CheckCircle
-              className="text-green-600 dark:text-green-400"
-              size={20}
-            />
-            <span className="text-green-800 dark:text-green-200">
-              {successMessage}
-            </span>
+        {message && (
+          <div className={`mb-6 p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-2 ${
+            message.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            <span className="font-medium">{message.text}</span>
           </div>
         )}
 
-        {/* Error Message */}
-        {errorMessage && (
-          <div className="mb-6 flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <AlertCircle className="text-red-600 dark:text-red-400" size={20} />
-            <span className="text-red-800 dark:text-red-200">
-              {errorMessage}
-            </span>
-          </div>
-        )}
+        <ProfileOverview user={user} initials={initials} />
 
-        {/* Profile Overview Card */}
-        <Card className="mb-6 border-2 border-border">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Profile Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Avatar */}
-              <div className="flex flex-col items-center md:col-span-1">
-                <Avatar className="w-24 h-24 shadow-lg mb-3">
-                  <AvatarImage
-                    src={
-                      user?.avatar?.secureUrl ||
-                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.firstName} ${user?.lastName}`
-                    }
-                    alt={`${user?.firstName} ${user?.lastName}`}
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-2xl font-bold">
-                    {getInitials(user?.firstName, user?.lastName)}
-                  </AvatarFallback>
-                </Avatar>
-                <h2 className="text-lg font-semibold text-foreground text-center">
-                  {user?.firstName} {user?.lastName}
-                </h2>
-                <p className="text-sm text-muted-foreground text-center">
-                  {user?.role &&
-                    user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                </p>
-              </div>
-
-              {/* Quick Info */}
-              <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Mail className="text-primary" size={18} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium text-foreground break-all">
-                      {user?.email}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Phone className="text-primary" size={18} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {user?.phone || "Not provided"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <MapPin className="text-primary" size={18} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Country</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {user?.country || "Not provided"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <Users className="text-primary" size={18} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Gender</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {user?.gender || "Not specified"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Bio Section */}
-        {user?.bio && (
-          <Card className="mb-6 border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Bio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-foreground/80 leading-relaxed">
-                {user.bio}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Edit Profile Form */}
-        <Card className="border-border">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-xl">Edit Profile Information</CardTitle>
-            {!isEditing && (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Edit Profile
-              </Button>
-            )}
+        <Card className="border-border shadow-sm">
+          <CardHeader>
+            <CardTitle>{isEditing ? "Modify Personal Details" : "Bio & Description"}</CardTitle>
           </CardHeader>
           <CardContent>
             {isEditing ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      placeholder="Enter your first name"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Enter your last name"
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Email & Phone */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter your email"
-                      className="mt-1"
-                      disabled
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Email cannot be changed here
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="e.g., +1234567890"
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Gender & Date of Birth */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select
-                      value={formData.gender}
-                      onValueChange={(value) =>
-                        handleSelectChange("gender", value)
-                      }
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="dob">Date of Birth</Label>
-                    <Input
-                      id="dob"
-                      name="dob"
-                      type="date"
-                      value={formData.dob}
-                      onChange={handleInputChange}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Country */}
-                <div>
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    placeholder="Enter your country"
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Bio */}
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    placeholder="Tell us about yourself"
-                    className="mt-1 resize-none"
-                    rows={4}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.bio.length}/500 characters
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 justify-end pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-primary hover:bg-primary/90"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                        Saving...
-                      </div>
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </Button>
-                </div>
-              </form>
+              <ProfileForm
+                formData={formData}
+                isLoading={isLoading}
+                onInputChange={handleInputChange}
+                onSelectChange={(n:any, v:any) => setFormData(p => ({...p, [n]: v}))}
+                onSubmit={handleSubmit}
+                onCancel={() => setIsEditing(false)}
+              />
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">First Name</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.firstName || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Name</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.lastName || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.email || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.phone || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Gender</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.gender || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Date of Birth
-                    </p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.dob
-                        ? new Date(user.dob).toLocaleDateString()
-                        : "—"}
-                    </p>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <p className="text-sm text-muted-foreground">Country</p>
-                    <p className="text-base font-medium text-foreground mt-1">
-                      {user?.country || "—"}
-                    </p>
-                  </div>
-                  {user?.bio && (
-                    <div className="sm:col-span-2">
-                      <p className="text-sm text-muted-foreground">Bio</p>
-                      <p className="text-base font-medium text-foreground mt-1">
-                        {user.bio}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                {user?.bio || "No biography provided yet. Tell the world about yourself!"}
+              </p>
             )}
           </CardContent>
         </Card>

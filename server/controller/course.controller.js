@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import fs from "fs";
 import {
   Course,
   Enrollment,
@@ -8,7 +7,7 @@ import {
   Certificate,
   Progress,
 } from "../models/course.model.js";
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
 import AppError from "../utils/user.error.js";
 import { isBlank } from "../utils/validate.js";
 import { ERROR_MESSAGES } from "../constants/index.js";
@@ -262,14 +261,11 @@ const updateCourse = async (req, res) => {
 const getCourseById = async (req, res) => {
   try {
     const { courseId } = req.params;
-    console.log(courseId);
-    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
         return AppError(res, "Invalid Course ID", 400);
       }
 
       const courseObjectId = new mongoose.Types.ObjectId(courseId);
-
       const course = await Course.aggregate([
         {
           $match: {
@@ -448,20 +444,16 @@ const getCourseById = async (req, res) => {
                 avatar: "$instructorUser.avatar",
               },
             },
-
             sections: 1,
           },
         },
       ]);
-
       return ApiResponse(res, {
         statusCode: 200,
         message: "Course Data fetched",
-        data: course,
+        data: course[0],
       });
-    }
   } catch (error) {
-    console.log(error);
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
@@ -1296,7 +1288,7 @@ const generateCertificate = async (req, res, next) => {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
-const enrolleCourse = async (req, res, next) => {
+const enrollCourse = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { courseId } = req.params;
@@ -1334,7 +1326,7 @@ const enrolleCourse = async (req, res, next) => {
 };
 
 // update the progress
-export const completeLecture = async (req, res) => {
+const completeLecture = async (req, res) => {
   try {
     const userId = req.user.id;
     const { courseId, lectureId, watchedSeconds } = req.body;
@@ -1377,8 +1369,7 @@ export const completeLecture = async (req, res) => {
 };
 
 // update the review;
-
-export const createReview = async (req, res) => {
+const createReview = async (req, res) => {
   try {
     const userId = req.user.id;
     const { courseId, rating, title, comment } = req.body;
@@ -1458,7 +1449,7 @@ export {
   getCourseCategories,
   generateCertificate,
   verifyCertificate,
-  enrolleCourse,
+  enrollCourse,
   completeLecture,
   createReview,
 };

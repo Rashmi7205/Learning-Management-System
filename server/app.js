@@ -10,6 +10,7 @@ import courseRouter from "./routes/course.routes.js";
 import sectionRouter from "./routes/section.routes.js";
 import lectureRouter from "./routes/lecture.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
+import cartRouter from "./routes/cart.routes.js";
 
 const app=express();
 
@@ -33,6 +34,8 @@ app.use('/api/courses',courseRouter);
 app.use('/api/courses/:courseId/sections',sectionRouter);
 app.use('/api/courses/:courseId/lectures',lectureRouter);
 app.use('/api/payments',paymentRouter);
+app.use('/api/cart', cartRouter);
+
 
 app.get('/ping',(req,res)=>{
     res.send('/pong');

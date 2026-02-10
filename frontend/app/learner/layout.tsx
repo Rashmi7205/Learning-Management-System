@@ -16,17 +16,17 @@ interface SidebarLink {
 const sidebarLinks: SidebarLink[] = [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/learner/dashboard",
     icon: <LayoutDashboard className="w-5 h-5" />,
   },
   {
     label: "Courses",
-    href: "/courses",
+    href: "/learner/courses",
     icon: <BookOpen className="w-5 h-5" />,
   },
   {
     label: "Progress",
-    href: "/progress",
+    href: "/learner/progress",
     icon: <TrendingUp className="w-5 h-5" />,
   },
 ];
@@ -44,8 +44,6 @@ export default function LearnerLayout({
   const { logoutUser } = require("@/lib/store/slices/authSlice");
 
   const handleToggleSidebar = () => {
-    // On mobile, toggle open/close
-    // On desktop, toggle collapsed/expanded
     if (window.innerWidth < 768) {
       setIsSidebarOpen(!isSidebarOpen);
     } else {
@@ -59,7 +57,7 @@ export default function LearnerLayout({
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
-    router.push("/(auth)/login");
+    router.push("/login");
   };
 
   return (

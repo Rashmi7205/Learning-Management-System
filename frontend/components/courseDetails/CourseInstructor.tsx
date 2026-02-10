@@ -87,7 +87,6 @@ export const CourseInstructor = ({
             {instructor.identityVerified && (
               <CheckCircle2
                 className="w-6 h-6 text-blue-500 fill-blue-500/10"
-                title="Verified Instructor"
               />
             )}
           </div>

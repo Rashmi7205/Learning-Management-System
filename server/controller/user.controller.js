@@ -20,7 +20,7 @@ const cookieOption = {
     sameSite: "lax"
 };
 
-const register = async (req, res, next) => {
+const register = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     if (isBlank(firstName) || isBlank(lastName) || isBlank(email)) {
@@ -69,7 +69,7 @@ const register = async (req, res, next) => {
         data: user
     });
 }
-const login = async (req, res, next) => {
+const login = async (req, res) => {
 
     const { email, password } = req.body;
     try {
@@ -127,7 +127,7 @@ const logout = async (req, res) => {
         });
     }
 }
-const getProfile = async (req, res, next) => {
+const getProfile = async (req, res) => {
     const { id } = req.user;
     try {
         const user = await User.findById(id);
@@ -198,7 +198,7 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-const resetPassword = async (req, res, next) => {
+const resetPassword = async (req, res) => {
     try {
         const { resetToken } = req.params;
         const { password } = req.body;
@@ -237,7 +237,7 @@ const resetPassword = async (req, res, next) => {
 
 };
 
-const changePassword = async (req, res, next) => {
+const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user.id;
@@ -273,43 +273,29 @@ const changePassword = async (req, res, next) => {
     }
 };
 
-const updateProfile = async (req, res, next) => {
+// Update Profile (without image)
+const updateProfile = async (req, res) => {
     try {
         const { firstName, lastName, phone, bio, gender, dob, country } = req.body;
+
         if (isBlank(firstName) || isBlank(lastName) || isBlank(phone) || isBlank(bio) || isBlank(gender) || isBlank(dob) || isBlank(country)) {
-            return ApiError(res, ERROR_MESSAGES.REQUIRED_FIELD, 404);
+            return ApiError(res, ERROR_MESSAGES.REQUIRED_FIELD, 400);
         }
+
         const userId = req.user.id;
         const user = await User.findById(userId);
+
         if (!user) {
             return AppError(res, "User does not exist", 404);
         }
+
         user.firstName = firstName;
         user.lastName = lastName;
         user.phone = phone;
         user.bio = bio;
-        user.gender = gender
+        user.gender = gender;
         user.dob = dob;
         user.country = country;
-
-        // File Upload To Cloudinary
-        if (req.file) {
-            try {
-                if (user.avatar.publicId && user.avatar.publicId !== "#") {
-                    //delete existing image
-                    await deleteImage(user.avatar.publicId);
-                }
-                const { publicId, secureUrl } = await uploadImage(req.file?.path);
-                if (publicId && secureUrl) {
-                    user.avatar.publicId = publicId;
-                    user.avatar.secureUrl = secureUrl;
-                }
-            } catch (e) {
-                //remove the uploaded file from temp folder in case of error
-                fs.rmSync(req.file?.path);
-                return AppError(res, 'file not uploaded try again', 500);
-            }
-        }
 
         await user.save();
 
@@ -323,8 +309,57 @@ const updateProfile = async (req, res, next) => {
     }
 };
 
+// Update Profile Image
+const updateProfileImage = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return AppError(res, "User does not exist", 404);
+        }
+        if (!req.file) {
+            return ApiError(res, "Please upload an image", 400);
+        }
+
+        try {
+            if (user.avatar.publicId && user.avatar.publicId !== "#") {
+                await deleteImage(user.avatar.publicId);
+            }
+
+            const { publicId, secureUrl } = await uploadImage(req.file.path);
+
+            if (publicId && secureUrl) {
+                user.avatar.publicId = publicId;
+                user.avatar.secureUrl = secureUrl;
+            }
+
+            await user.save();
+
+            res.status(200).json({
+                success: true,
+                message: "Profile image updated successfully",
+                avatar: {
+                    publicId: user.avatar.publicId,
+                    secureUrl: user.avatar.secureUrl
+                }
+            });
+        } catch (uploadError) {
+            if (req.file?.path) {
+                fs.rmSync(req.file.path);
+            }
+            return AppError(res, "File not uploaded, please try again", 500);
+        }
+    } catch (error) {
+        if (req.file?.path) {
+            fs.rmSync(req.file.path);
+        }
+        return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    }
+};
+
 //send email otp
-const sendEmailOtp = async (req, res, next) => {
+const sendEmailOtp = async (req, res) => {
     try {
         const { email } = req.body;
         if (isBlank(email)) {
@@ -363,7 +398,7 @@ const sendEmailOtp = async (req, res, next) => {
 };
 
 //send mobile otp
-const sendPhoneOtp = async (req, res, next) => {
+const sendPhoneOtp = async (req, res) => {
     try {
         const { phone } = req.body;
         const { id } = req.user;
@@ -404,7 +439,7 @@ const sendPhoneOtp = async (req, res, next) => {
     }
 };
 //verify email
-const verifyEmail = async (req, res, next) => {
+const verifyEmail = async (req, res) => {
     try {
         const { verificationToken } = req.body;
         const user = await User.findOne({
@@ -429,7 +464,7 @@ const verifyEmail = async (req, res, next) => {
 };
 
 //verify phone
-const verifyPhone = async (req, res, next) => {
+const verifyPhone = async (req, res) => {
     try {
         const { verificationToken } = req.params;
         const user = await User.findOne({
@@ -507,5 +542,6 @@ export {
     sendEmailOtp,
     sendPhoneOtp,
     verifyEmail,
-    verifyPhone
+    verifyPhone,
+    updateProfileImage
 }
