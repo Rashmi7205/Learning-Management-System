@@ -1,120 +1,87 @@
 "use client";
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { ContinueLearning } from "@/components/dashboard/ContinueLearning";
+import { LearningProgressChart } from "@/components/dashboard/LearningProgressChart";
+import { EnrolledCoursesGrid } from "@/components/dashboard/EnrolledCoursesGrid";
+import { Achievements } from "@/components/dashboard/Achievements";
+import { Zap } from "lucide-react";
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/lib/store/hooks";
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
-import { updateUserProfile } from "@/lib/store/slices/authSlice";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
-import { CheckCircle, AlertCircle, Edit3 } from "lucide-react";
-import { ProfileOverview } from "@/components/dashboard/ProfileOverview";
-import { ProfileForm } from "@/components/dashboard/ProfileForm";
-
-interface updateProfileData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  bio: string;
-  gender: string;
-  dob:  Date |string;
-  country: string;
-}
-
-export default function ProfilePage() {
-  const { user, isLoading, isAuthenticated } = useAuth();
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const [isEditing, setIsEditing] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
-  const [formData, setFormData] = useState<updateProfileData>({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    bio: user?.bio || "",
-    gender: user?.gender || "",
-    dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : "",
-    country: user?.country || "",
-  });
-
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) router.push("/login");
-  }, [isAuthenticated, isLoading, router]);
-
-  if (isLoading && !user) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const result = await dispatch(updateUserProfile(formData));
-      if (result.payload) {
-        setMessage({ type: 'success', text: "Profile updated successfully!" });
-        setIsEditing(false);
-        setTimeout(() => setMessage(null), 3000);
-      }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || "Failed to update" });
-    }
-  };
-
-  const initials = `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase();
-
+export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-transparent py-12">
-      <div className="max-w-4xl mx-auto px-6">
-        <header className="flex justify-between items-end mb-8">
-          <div>
-            <h1 className="text-4xl font-black tracking-tight text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">Manage your public profile and account details</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] selection:bg-[#2845D6]/30">
+      {/* Decorative Noise Overlay */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('/noise.png')]"></div>
+
+      <motion.main
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-12">
+            <ContinueLearning />
           </div>
-          {!isEditing && (
-            <Button onClick={() => setIsEditing(true)} className="rounded-full shadow-lg">
-              <Edit3 className="w-4 h-4 mr-2" /> Edit Profile
-            </Button>
-          )}
-        </header>
+          <div className="space-y-8">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[#2845D6] to-[#06D001] text-white shadow-2xl shadow-blue-500/20 overflow-hidden relative group border border-white/10"
+            >
+              <div className="relative z-10">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-md">
+                    <Zap className="w-4 h-4 fill-current text-white" />
+                  </div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-90 font-bold">
+                    Current Learning Streak
+                  </p>
+                </div>
 
-        {message && (
-          <div className={`mb-6 p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-2 ${
-            message.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-          }`}>
-            {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-            <span className="font-medium">{message.text}</span>
+                <h3 className="text-5xl font-black mt-4 italic font-serif tracking-tighter">
+                  12{" "}
+                  <span className="text-sm not-italic font-sans opacity-80 uppercase tracking-widest ml-1">
+                    Days
+                  </span>
+                </h3>
+
+                <p className="text-sm mt-6 font-medium leading-relaxed opacity-95 max-w-[200px]">
+                  You're in the{" "}
+                  <span className="underline decoration-[#06D001] underline-offset-4 font-bold">
+                    top 5%
+                  </span>{" "}
+                  of learners this week!
+                </p>
+              </div>
+
+              {/* Animated Background Icon */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.1, 0.2, 0.1],
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute -right-6 -bottom-6 text-white"
+              >
+                <Zap size={180} strokeWidth={1} className="rotate-12" />
+              </motion.div>
+
+              {/* Decorative Blur Glass */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full -mr-16 -mt-16" />
+            </motion.div>
+            <Achievements />
           </div>
-        )}
-
-        <ProfileOverview user={user} initials={initials} />
-
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle>{isEditing ? "Modify Personal Details" : "Bio & Description"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isEditing ? (
-              <ProfileForm
-                formData={formData}
-                isLoading={isLoading}
-                onInputChange={handleInputChange}
-                onSelectChange={(n:any, v:any) => setFormData(p => ({...p, [n]: v}))}
-                onSubmit={handleSubmit}
-                onCancel={() => setIsEditing(false)}
-              />
-            ) : (
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                {user?.bio || "No biography provided yet. Tell the world about yourself!"}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        </div>
+        <LearningProgressChart />
+        <EnrolledCoursesGrid />
+      </motion.main>
     </div>
   );
 }

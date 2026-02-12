@@ -45,6 +45,7 @@ const Header = () => {
   return (
     <>
       <header
+      id="top"
         className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
             ? "backdrop-blur-lg shadow-md bg-slate-900/80"

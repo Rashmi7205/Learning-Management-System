@@ -1,6 +1,20 @@
 import mongoose from "mongoose";
-import crypto from "crypto";
 
+const orderItemSchema = new mongoose.Schema({
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
+    required: true
+  },
+  originalPrice: { type: Number, required: true },
+  discountAmount: { type: Number, default: 0 },
+  finalPrice: { type: Number, required: true },
+  courseSnapshot: {
+    title: String,
+    instructor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    price: Number,
+  }
+});
 const orderSchema = new mongoose.Schema(
   {
     // User & Course
@@ -10,26 +24,17 @@ const orderSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    course: {  // Fixed typo: "courese" -> "course"
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-      index: true,
-    },
+    items: [orderItemSchema],
 
+    orderNumber: { type: String, unique: true, required: true },
+    subtotal: { type: Number, required: true },
+    totalDiscount: { type: Number, default: 0 },
     // Order Details
     orderNumber: {
       type: String,
       unique: true,
       required: true,
       index: true,
-    },
-
-    // Pricing Information
-    originalPrice: {
-      type: Number,
-      required: true,
-      min: 0,
     },
     discountAmount: {
       type: Number,
@@ -129,10 +134,9 @@ const orderSchema = new mongoose.Schema(
       ipAddress: String,
       userAgent: String,
       deviceType: String,
-      source: String, // 'web', 'mobile', 'api'
+      source: String,
     },
 
-    // Idempotency (prevent duplicate orders)
     idempotencyKey: {
       type: String,
       unique: true,

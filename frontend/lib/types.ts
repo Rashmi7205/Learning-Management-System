@@ -454,9 +454,9 @@ export interface RegisterResponse {
   user: User;
 }
 export interface ApiResponse<T> {
-    success:boolean,
-    message:string,
-    data?:T;
+  success: boolean;
+  message: string;
+  data?: T;
 }
 
 // Pagination
@@ -576,4 +576,38 @@ export interface MoveToWishlistRequest {
 
 export interface MoveToCartRequest {
   courseId: string;
+}
+export interface DashboardStats {
+  totalEnrolled: number;
+  inProgress: number;
+  completed: number;
+  certificatesEarned: number;
+}
+
+export interface EnrolledCourse {
+  _id: string;
+  course: {
+    _id: string;
+    title: string;
+    instructor: {
+      user: { firstName: string; lastName: string; avatar: string };
+    };
+    thumbnail: string;
+    totalLectures: number;
+  };
+  progress: number;
+  status: "not_started" | "in_progress" | "completed";
+  lastAccessedAt: string;
+}
+
+export interface Activity {
+  _id: string;
+  type:
+    | "enrollment"
+    | "lecture_completed"
+    | "quiz_submitted"
+    | "certificate_earned";
+  description: string;
+  courseTitle: string;
+  timestamp: string;
 }

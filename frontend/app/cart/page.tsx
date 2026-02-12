@@ -23,22 +23,76 @@ import {
   clearCart,
   fetchWishlist,
   moveToCart
-} from "@/lib/store/slices/cartSlice"; // Adjust this path to your slice file
+} from "@/lib/store/slices/cartSlice";
 import Footer from "@/components/home-page/Footer";
 import Header from "@/components/home-page/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { paymentService } from "@/lib/services/api";
 
 const CartPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // 1. Get real data from Redux instead of local state
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+
+      // 1. Initialize Razorpay SDK
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) throw new Error("Razorpay SDK failed to load");
+
+      // 2. Call Service to Create Order
+      const courseIds = cartItems.map((item: any) => item._id);
+      const { data: orderData } = await paymentService.initiate(courseIds);
+
+      // 3. Configure Razorpay Popup
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount * 100,
+        currency: orderData.currency,
+        name: "Knowledge Lab",
+        order_id: orderData.razorpayOrderId,
+        handler: async (response: any) => {
+          // 4. Verify via Service
+          const verification = await paymentService.verify({
+            ...response,
+            orderId: orderData.orderId, // Mongo ID
+          });
+
+          if (verification.success) {
+            toast.success("Welcome to the Lab!");
+            dispatch(clearCart());
+            window.location.href = "/learner/courses";
+          }
+        },
+        theme: { color: "#2845D6" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      toast.error(error.message || "Payment initiation failed");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const { items: cartItems, wishlistItems,loading } = useSelector(
     (state: RootState) => state.cart
   );
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
-  // 2. Fetch data on mount
   useEffect(() => {
     dispatch(fetchCart());
     dispatch(fetchWishlist());
@@ -282,8 +336,16 @@ const CartPage = () => {
                         Apply
                       </Button>
                     </div>
-                    <Button className="w-full bg-[#2845D6] hover:bg-[#1f38b0] h-14 rounded-2xl text-lg font-bold transition-all hover:scale-[1.02]">
-                      Checkout Now
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={isProcessing || cartItems.length === 0}
+                      className="w-full bg-[#2845D6] hover:bg-[#1f38b0] h-14 rounded-2xl text-lg font-bold transition-all hover:scale-[1.02]"
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      ) : (
+                        "Checkout Now"
+                      )}
                     </Button>
                   </div>
                 </div>

@@ -110,7 +110,9 @@ export const courseService = {
   },
 
   getById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<CourseDetailsData>>(`/courses/${id}`);
+    const response = await apiClient.get<ApiResponse<CourseDetailsData>>(
+      `/courses/${id}`,
+    );
     return response.data;
   },
 
@@ -158,39 +160,12 @@ export const courseService = {
     const response = await apiClient.get(`/courses/categories`);
     return response.data;
   },
-};
-
-// ENROLLMENT API
-export const enrollmentService = {
-  enroll: async (courseId: string) => {
-    const response = await apiClient.post<Enrollment>("/enrollments", {
-      course: courseId,
-    });
-    return response.data;
-  },
-
-  getAll: async (userId?: string) => {
-    const response = await apiClient.get<PaginatedResponse<Enrollment>>(
-      "/enrollments",
-      {
-        params: userId ? { user: userId } : undefined,
-      }
-    );
-    return response.data;
-  },
-
-  getById: async (id: string) => {
-    const response = await apiClient.get<Enrollment>(`/enrollments/${id}`);
-    return response.data;
-  },
-
-  complete: async (id: string) => {
-    const response = await apiClient.put<Enrollment>(
-      `/enrollments/${id}/complete`
-    );
+  getEnrolledCourses: async () => {
+    const response = await apiClient.get("/courses/enrolled");
     return response.data;
   },
 };
+
 
 // PROGRESS API
 export const progressService = {
@@ -251,39 +226,37 @@ export const orderService = {
 
 // PAYMENT API
 export const paymentService = {
-  initiate: async (orderId: string, provider: "stripe" | "razorpay") => {
-    const response = await apiClient.post<Payment>("/payments/initiate", {
-      order: orderId,
-      provider,
+  initiate: async (courseIds: string[]) => {
+    const response = await apiClient.post("/payments/orders", {
+      courseIds,
     });
+    // This returns { razorpayOrderId, amount, currency, key, orderId, ... }
     return response.data;
   },
 
-  verify: async (paymentId: string, signature: string) => {
-    const response = await apiClient.post<Payment>("/payments/verify", {
-      paymentId,
-      signature,
-    });
-    return response.data;
-  },
-
-  getById: async (id: string) => {
-    const response = await apiClient.get<Payment>(`/payments/${id}`);
-    return response.data;
-  },
-
-  getAll: async (page = 1, limit = 10) => {
-    const response = await apiClient.get<PaginatedResponse<Payment>>(
-      "/payments",
-      {
-        params: { page, limit },
-      }
+  verify: async (verificationData: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    orderId: string; // The MongoDB Order ID
+  }) => {
+    const response = await apiClient.post(
+      "/payments/razorpay/verify",
+      verificationData,
     );
     return response.data;
   },
 
-  requestRefund: async (id: string, amount?: number) => {
-    const response = await apiClient.post(`/payments/${id}/refund`, { amount });
+  // Administrative or User History Methods
+  getById: async (id: string) => {
+    const response = await apiClient.get(`/payments/${id}`);
+    return response.data;
+  },
+
+  getAll: async (page = 1, limit = 10) => {
+    const response = await apiClient.get("/payment", {
+      params: { page, limit },
+    });
     return response.data;
   },
 };

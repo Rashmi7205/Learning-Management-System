@@ -1,19 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { Navbar } from "@/components/navbar";
 import { useAuth } from "@/lib/store/hooks";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, BookOpen, TrendingUp } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "@/lib/store/slices/authSlice";
+import { LayoutDashboard, BookOpen, TrendingUp, Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface SidebarLink {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-}
-
-const sidebarLinks: SidebarLink[] = [
+const sidebarLinks = [
   {
     label: "Dashboard",
     href: "/learner/dashboard",
@@ -29,6 +26,11 @@ const sidebarLinks: SidebarLink[] = [
     href: "/learner/progress",
     icon: <TrendingUp className="w-5 h-5" />,
   },
+  {
+    label: "Settings",
+    href: "/learner/profile",
+    icon: <Settings className="w-5 h-5" />,
+  },
 ];
 
 export default function LearnerLayout({
@@ -36,60 +38,77 @@ export default function LearnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
-  const dispatch = require("react-redux").useDispatch();
-  const { logoutUser } = require("@/lib/store/slices/authSlice");
+  const dispatch = useDispatch();
 
+  // Handle responsive sidebar behavior
   const handleToggleSidebar = () => {
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < 1024) {
       setIsSidebarOpen(!isSidebarOpen);
     } else {
       setIsSidebarCollapsed(!isSidebarCollapsed);
     }
   };
 
-  const handleCloseSidebar = () => {
-    setIsSidebarOpen(false);
-  };
-
   const handleLogout = async () => {
+    // @ts-ignore - handling async thunk dispatch
     await dispatch(logoutUser());
     router.push("/login");
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] font-sans text-slate-900 dark:text-slate-100 overflow-hidden">
+      {/* KNOWLEDGE LAB BACKGROUND ELEMENTS
+          Subtle gradients and noise texture to ground the UI
+      */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#2845D6]/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-[#06D001]/5 blur-[100px] rounded-full" />
+        <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] bg-[url('/noise.png')] mix-blend-overlay" />
+      </div>
+
+      {/* SIDEBAR - Passes through the brand colors and Knowledge Lab title */}
       <Sidebar
         isOpen={isSidebarOpen}
         isCollapsed={isSidebarCollapsed}
-        onClose={handleCloseSidebar}
+        onClose={() => setIsSidebarOpen(false)}
         links={sidebarLinks}
-        title="CourseLoop"
+        title="COURSE LOOP"
         onLogout={handleLogout}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Navbar */}
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* NAVBAR - Glassmorphism effect */}
         <Navbar
           onToggleSidebar={handleToggleSidebar}
-          isSidebarCollapsed={isSidebarCollapsed}
-          userName={
-            user?.firstName ? `${user.firstName} ${user.lastName}` : "Learner"
-          }
-          userEmail={user?.email || "learner@example.com"}
-          userAvatar={user?.avatar?.secureUrl}
         />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto p-8 bg-background">
-          {children}
+        {/* PAGE CONTENT - Scrollable with custom styling */}
+        <main
+          className={cn(
+            "flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out relative z-10",
+            "p-4 md:p-8 lg:p-10",
+            "scrollbar-thin scrollbar-thumb-slate-200 dark:scroll-bar-thumb-slate-800",
+          )}
+        >
+          {/* Staggered Content Animation Wrapper */}
+          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {children}
+          </div>
         </main>
       </div>
+
+      {/* MOBILE OVERLAY */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-45 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

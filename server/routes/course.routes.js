@@ -14,8 +14,8 @@ import {
   createReview,
   generateCertificate,
   verifyCertificate,
-  enrollCourse,
   completeLecture,
+  getEnrolledCourses,
 } from "../controller/course.controller.js";
 import isLoggedIn, {
   isAdmin,
@@ -89,7 +89,7 @@ courseRouter.post("/:courseId/certificate", isLoggedIn, generateCertificate);
 //verify certificate
 courseRouter.post("/:courseId/verify", isLoggedIn, verifyCertificate);
 // enroll course
-courseRouter.post("/:courseId/enroll", isLoggedIn, enrollCourse);
+courseRouter.post("/enrolled", isLoggedIn, getEnrolledCourses);
 // completeLecture
 courseRouter.put("/:courseId/complete", isLoggedIn, completeLecture);
 

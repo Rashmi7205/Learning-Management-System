@@ -2,22 +2,21 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Category, CourseCardData } from "@/lib/types";
 import { courseService } from "@/lib/services/api";
 
-
-
 interface InitialCourseState {
   featuredCourses: CourseCardData[];
   courseList: CourseCardData[];
-
+  enrolledCourses: any[];
   loading: boolean;
   page: number;
   limit: number;
   totalCourses: number;
   totalPages: number;
   error: string | null;
-  categories:Category[]
+  categories: Category[];
 }
 
 const initialState: InitialCourseState = {
+  enrolledCourses: [],
   featuredCourses: [],
   courseList: [],
   loading: false,
@@ -26,8 +25,9 @@ const initialState: InitialCourseState = {
   totalCourses: 0,
   totalPages: 1,
   error: null,
-  categories:[]
+  categories: [],
 };
+
 
 const formatCourseData = (courses: any[]): CourseCardData[] =>
   courses.map((course) => ({
@@ -64,7 +64,20 @@ export const getCoursesList = createAsyncThunk<
     return thunkAPI.rejectWithValue(error.message || "Failed to fetch courses");
   }
 });
-
+export const getEnrolledCoursesAction = createAsyncThunk<any[]>(
+  "courses/getEnrolled",
+  async (_, thunkAPI) => {
+    try {
+      // Assuming you added getEnrolledCourses to your courseService
+      const response = await courseService.getEnrolledCourses();
+      return response.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to fetch your courses",
+      );
+    }
+  },
+);
 export const getFeaturedCoursesList = createAsyncThunk<
   CourseCardData[],
   { limit?: number } | void
@@ -81,16 +94,19 @@ export const getFeaturedCoursesList = createAsyncThunk<
   }
 });
 
-export const getAllCategoryList = createAsyncThunk<Category[]>("courses/categories",async (_,thunkAPI)=>{
-  try {
-    const response= await courseService.getCategoryList();
-    return response.data;
-  } catch (error:any) {
+export const getAllCategoryList = createAsyncThunk<Category[]>(
+  "courses/categories",
+  async (_, thunkAPI) => {
+    try {
+      const response = await courseService.getCategoryList();
+      return response.data;
+    } catch (error: any) {
       return thunkAPI.rejectWithValue(
-      error.message || "Failed to fetch featured courses",
-    );
-  }
-});
+        error.message || "Failed to fetch featured courses",
+      );
+    }
+  },
+);
 
 const courseSlice = createSlice({
   name: "courses",
@@ -134,6 +150,17 @@ const courseSlice = createSlice({
       })
       .addCase(getAllCategoryList.fulfilled, (state, action) => {
         state.categories = action.payload;
+      })
+      .addCase(getEnrolledCoursesAction.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getEnrolledCoursesAction.fulfilled, (state, action) => {
+        state.loading = false;
+        state.enrolledCourses = action.payload;
+      })
+      .addCase(getEnrolledCoursesAction.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

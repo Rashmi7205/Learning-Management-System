@@ -1211,7 +1211,7 @@ const getCourseCategories = async (req, res) => {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
-const generateCertificate = async (req, res, next) => {
+const generateCertificate = async (req, res) => {
   try {
     const { id } = req.user;
     const { courseId } = req.params;
@@ -1288,43 +1288,65 @@ const generateCertificate = async (req, res, next) => {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
   }
 };
-const enrollCourse = async (req, res, next) => {
+const getEnrolledCourses = async (req, res) => {
   try {
-    const { id } = req.user;
-    const { courseId } = req.params;
-    let enrollment = await Enrollment.findOne({
-      user: id,
-      course: courseId,
-    });
-    if (!enrollment) {
-      enrollment = new Enrollment({
-        user: id,
-        course: courseId,
+    const userId = req.user.id;
+
+    const enrollments = await Enrollment.find({ user: userId })
+      .populate({
+        path: "course",
+        select: "title thumbnail duration instructor level",
+        populate: {
+          path: "instructor",
+          select: "firstName lastName"
+        }
+      })
+      .sort("-enrolledAt");
+
+    if (!enrollments || enrollments.length === 0) {
+      return ApiResponse(res, {
+        statusCode: 200,
+        message: "No enrolled courses found",
+        data: [],
       });
-      await enrollment.save();
     }
-    // create the progress
-    let progress = await Progress.findOne({
-      user: id,
-      course: courseId,
+
+
+    const validEnrollments = enrollments.filter(e => e.course !== null);
+    const courseIds = validEnrollments.map(e => e.course._id);
+
+    const progresses = await Progress.find({
+      user: userId,
+      course: { $in: courseIds }
     });
-    if (!progress) {
-      progress = new Progress({
-        user: id,
-        course: courseId,
-      });
-      await progress.save();
-    }
+
+    const enrolledData = validEnrollments.map(enrollment => {
+      const progress = progresses.find(
+        p => p.course.toString() === enrollment.course._id.toString()
+      );
+
+      return {
+        enrollmentId: enrollment._id,
+        enrolledAt: enrollment.enrolledAt,
+        course: enrollment.course,
+        progress: progress ? {
+          percentage: progress.progressPercentage || 0,
+          lastAccessed: progress.updatedAt
+        } : { percentage: 0 }
+      };
+    });
+
     return ApiResponse(res, {
       statusCode: 200,
-      message: "Course enrolled successfully",
-      data: enrollment,
+      message: "Enrolled courses retrieved successfully",
+      data: enrolledData,
     });
+
   } catch (error) {
-    return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+    console.error("Get enrolled courses error:", error);
+    return AppError(res, "Failed to fetch enrolled courses", 500);
   }
 };
-
 // update the progress
 const completeLecture = async (req, res) => {
   try {
@@ -1449,7 +1471,7 @@ export {
   getCourseCategories,
   generateCertificate,
   verifyCertificate,
-  enrollCourse,
+  getEnrolledCourses,
   completeLecture,
   createReview,
 };

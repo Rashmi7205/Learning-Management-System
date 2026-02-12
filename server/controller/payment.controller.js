@@ -4,10 +4,10 @@ import { Course, Enrollment, Progress } from "../models/course.model.js";
 import User, { Instructor } from "../models/user.model.js";
 import Order from "../models/order.model.js";
 import AppError from "../utils/user.error.js";
-import mongoose from "mongoose";
 import { generateOrderNumber } from "../utils/generateOrderNumber.js";
 import ApiResponse from "../utils/apiResponse.js";
 import { Payment } from "../models/payment.model.js";
+import mongoose from "mongoose";
 
 
 
@@ -18,20 +18,13 @@ const razorpay = new Razorpay({
 
 export const createOrderAndInitializePayment = async (req, res) => {
   try {
-    const { courseIds } = req.body; // Array of course IDs
+    const { courseIds } = req.body;
     const userId = req.user.id;
 
     // Validate input
     if (!Array.isArray(courseIds) || courseIds.length === 0) {
       return AppError(res, "Please provide at least one course", 400);
     }
-
-    // Validate all course IDs
-    const invalidIds = courseIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
-    if (invalidIds.length > 0) {
-      return AppError(res, "Invalid course ID(s) provided", 400);
-    }
-
     // Fetch all courses
     const courses = await Course.find({
       _id: { $in: courseIds },
@@ -147,17 +140,15 @@ export const createOrderAndInitializePayment = async (req, res) => {
       },
     });
 
-    // Create order in database
     const order = await Order.create({
       user: userId,
       items: orderItems,
-      subtotal,
-      totalDiscount,
-      totalAmount,
+      subtotal: subtotal,
+      totalDiscount: totalDiscount,
+      totalAmount: totalAmount,
       currency: "INR",
       status: "processing",
       paymentIntentId: razorpayOrder.id,
-      expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
       orderNumber,
       userSnapshot: {
         email: user.email,
@@ -226,117 +217,93 @@ export const createOrderAndInitializePayment = async (req, res) => {
 };
 
 export const verifyRazorpayPayment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
     const userId = req.user.id;
-
-    // Validate inputs
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return AppError(res, "Missing payment verification details", 400);
-    }
-
-    // Verify signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
 
-    const isAuthentic = expectedSignature === razorpay_signature;
-
-    if (!isAuthentic) {
+    if (expectedSignature !== razorpay_signature) {
+      await session.abortTransaction();
       return AppError(res, "Invalid payment signature", 400);
     }
 
-    // Fetch order
-    const order = await Order.findById(orderId);
-
+    const order = await Order.findById(orderId).session(session);
     if (!order) {
+      await session.abortTransaction();
       return AppError(res, "Order not found", 404);
     }
 
-    if (order.user.toString() !== userId) {
-      return AppError(res, "Unauthorized access", 403);
-    }
-
-    // Fetch payment from Razorpay
-    const razorpayPayment = await razorpay.payments.fetch(razorpay_payment_id);
-
-    // Update payment record
-    const payment = await Payment.findOne({
-      order: order._id,
-      paymentId: razorpay_order_id,
-    });
-
+    const payment = await Payment.findOne({ order: order._id, paymentId: razorpay_order_id }).session(session);
     if (!payment) {
+      await session.abortTransaction();
       return AppError(res, "Payment record not found", 404);
     }
+    const razorpayPayment = await razorpay.payments.fetch(razorpay_payment_id);
 
     payment.status = "succeeded";
     payment.transactionId = razorpay_payment_id;
     payment.capturedAt = new Date();
-    payment.webhookVerified = true;
-    payment.paymentMethod = {
-      type: razorpayPayment.method,
-      ...razorpayPayment.card,
-    };
-    await payment.save();
+    await payment.save({ session });
 
-    // Update order
     order.status = "paid";
     order.paymentStatus = "captured";
     order.paidAt = new Date();
-    await order.save();
+    await order.save({ session });
 
-    // Create enrollment
-    const enrollment = await Enrollment.create({
-      user: userId,
-      course: order.course,
-      enrolledAt: new Date(),
-    });
+    const enrollmentIds = [];
+    for (const item of order.items) {
+      const existing = await Enrollment.findOne({ user: userId, course: item.course }).session(session);
 
-    // Create initial progress
-    await Progress.create({
-      user: userId,
-      course: order.course,
-      progressPercentage: 0,
-      completedLectures: [],
-    });
+      if (!existing) {
+        const [newEnrollment] = await Enrollment.create([{
+          user: userId,
+          course: item.course,
+          order: order._id,
+          enrolledAt: new Date(),
+        }], { session });
 
-    // Update course stats
-    await Course.findByIdAndUpdate(order.course, {
-      $inc: { totalStudents: 1 },
-    });
+        enrollmentIds.push(newEnrollment._id);
 
-    // Update instructor stats
-    await Instructor.findByIdAndUpdate(order.courseSnapshot.instructor, {
-      $inc: {
-        totalStudents: 1,
-        totalEarnings: order.totalAmount,
-      },
-    });
+        await Progress.create([{
+          user: userId,
+          course: item.course,
+          progressPercentage: 0,
+        }], { session });
 
-    // Update user stats
+        await Course.findByIdAndUpdate(item.course, { $inc: { totalStudents: 1 } }, { session });
+
+        await Instructor.findByIdAndUpdate(item.courseSnapshot.instructor, {
+          $inc: { totalStudents: 1, totalEarnings: item.finalPrice },
+        }, { session });
+      }
+    }
+
     await User.findByIdAndUpdate(userId, {
-      $inc: { totalCoursesEnrolled: 1 },
-    });
+      $inc: { totalCoursesEnrolled: enrollmentIds.length },
+    }, { session });
 
-
-
-    // Send confirmation email
+    // 5. Commit all changes
+    await session.commitTransaction();
+    session.endSession();
 
     return ApiResponse(res, {
       statusCode: 200,
-      message: "Payment verified and course enrolled successfully",
-      data: {
-        orderId: order._id,
-        paymentId: payment._id,
-        enrollmentId: enrollment._id,
-        courseId: order.course,
-      },
+      message: "Payment verified and course access granted.",
+      data: { orderId: order._id, enrollmentIds },
     });
+
   } catch (error) {
-    console.error("Verify payment error:", error);
-    return AppError(res, "Payment verification failed", 500);
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Transaction Aborted. Error:", error);
+    return AppError(res, "Payment verification failed. Changes rolled back.", 500);
   }
 };
