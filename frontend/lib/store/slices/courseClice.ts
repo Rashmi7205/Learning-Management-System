@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Category, CourseCardData } from "@/lib/types";
+import type { Category, CourseCardData, EnrolledCourse } from "@/lib/types";
 import { courseService } from "@/lib/services/api";
 
 interface InitialCourseState {
@@ -64,7 +64,7 @@ export const getCoursesList = createAsyncThunk<
     return thunkAPI.rejectWithValue(error.message || "Failed to fetch courses");
   }
 });
-export const getEnrolledCoursesAction = createAsyncThunk<any[]>(
+export const getEnrolledCoursesAction = createAsyncThunk<EnrolledCourse[]>(
   "courses/getEnrolled",
   async (_, thunkAPI) => {
     try {

@@ -1291,102 +1291,547 @@ const generateCertificate = async (req, res) => {
 const getEnrolledCourses = async (req, res) => {
   try {
     const userId = req.user.id;
+    const {
+      status,        // 'all', 'in_progress', 'completed', 'not_started'
+      page = 1,
+      limit = 10,
+      sort = '-enrolledAt',
+      search,
+    } = req.query;
 
-    const enrollments = await Enrollment.find({ user: userId })
+    // Build enrollment query
+    const enrollmentQuery = {
+      user: userId,
+    };
+
+    // Get enrollments with populated course data
+    const allEnrollments = await Enrollment.find(enrollmentQuery)
       .populate({
         path: "course",
-        select: "title thumbnail duration instructor level",
-        populate: {
-          path: "instructor",
-          select: "firstName lastName"
-        }
+        select: "title thumbnail"
       })
-      .sort("-enrolledAt");
+      .sort(sort)
+      .lean();
 
-    if (!enrollments || enrollments.length === 0) {
-      return ApiResponse(res, {
-        statusCode: 200,
-        message: "No enrolled courses found",
-        data: [],
-      });
+    // Filter out null courses
+    let validEnrollments = allEnrollments.filter(e => e.course !== null);
+
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      validEnrollments = validEnrollments.filter(e =>
+        e.course.title.toLowerCase().includes(searchLower) ||
+        (e.course.subtitle && e.course.subtitle.toLowerCase().includes(searchLower))
+      );
     }
 
-
-    const validEnrollments = enrollments.filter(e => e.course !== null);
+    // Get course IDs for progress lookup
     const courseIds = validEnrollments.map(e => e.course._id);
 
+    // Fetch progress data for all courses in one query
     const progresses = await Progress.find({
       user: userId,
       course: { $in: courseIds }
-    });
+    }).lean();
 
-    const enrolledData = validEnrollments.map(enrollment => {
+    // Map enrollments with progress data
+    let enrolledData = validEnrollments.map(enrollment => {
       const progress = progresses.find(
         p => p.course.toString() === enrollment.course._id.toString()
       );
 
+      const progressPercentage = progress?.progressPercentage || 0;
+      const completedLectures = progress?.completedLectures?.length || 0;
+
       return {
         enrollmentId: enrollment._id,
         enrolledAt: enrollment.enrolledAt,
-        course: enrollment.course,
-        progress: progress ? {
-          percentage: progress.progressPercentage || 0,
-          lastAccessed: progress.updatedAt
-        } : { percentage: 0 }
+        course: {
+          _id: enrollment.course._id,
+          title: enrollment.course.title,
+          subtitle: enrollment.course.subtitle,
+          thumbnail: enrollment.course.thumbnail,
+        },
+        progress: {
+          percentage: progressPercentage,
+          completedLectures: completedLectures,
+          totalWatchTime: progress?.totalWatchTime || 0,
+          lastAccessedAt: progress?.lastAccessedAt || progress?.updatedAt,
+        },
+        // Calculated fields
+        status: progressPercentage >= 100
+          ? 'completed'
+          : (progressPercentage > 0 ? 'in_progress' : 'not_started'),
       };
     });
+
+    // Apply status filter AFTER calculating progress
+    if (status === 'completed') {
+      enrolledData = enrolledData.filter(e => e.status === 'completed');
+    } else if (status === 'in_progress') {
+      enrolledData = enrolledData.filter(e => e.status === 'in_progress');
+    } else if (status === 'not_started') {
+      enrolledData = enrolledData.filter(e => e.status === 'not_started');
+    }
+
+    // Calculate pagination
+    const total = enrolledData.length;
+    const pages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+
+    // Paginate results
+    const paginatedData = enrolledData.slice(startIndex, endIndex);
 
     return ApiResponse(res, {
       statusCode: 200,
       message: "Enrolled courses retrieved successfully",
-      data: enrolledData,
+      data: paginatedData,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages,
+        hasMore: page < pages,
+      },
+      stats: {
+        total: total,
+        completed: enrolledData.filter(e => e.status === 'completed').length,
+        inProgress: enrolledData.filter(e => e.status === 'in_progress').length,
+        notStarted: enrolledData.filter(e => e.status === 'not_started').length,
+      }
     });
 
   } catch (error) {
-    console.error("Get enrolled courses error:", error);
     return AppError(res, "Failed to fetch enrolled courses", 500);
   }
 };
-// update the progress
-const completeLecture = async (req, res) => {
+
+const getCourseContent = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { courseId, lectureId, watchedSeconds } = req.body;
+    const { courseId } = req.params;
 
-    const lecture = await Lecture.findById(lectureId);
-    if (!lecture) {
-      return AppError(res, "Lecture not found", 404);
+    // Validate user ID
+    if (!userId) {
+      return AppError(res, "User not authenticated", 401);
     }
 
-    const completionRatio = watchedSeconds / lecture.duration;
-    if (completionRatio < 0.9) {
-      return res.status(200).json({ message: "Lecture not completed yet" });
+    // Validate course ID
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+      return AppError(res, "Invalid Course ID", 400);
     }
 
-    const progress = await Progress.findOne({ user: userId, course: courseId });
+    // Check if user is enrolled in the course
+    const enrollment = await Enrollment.findOne({
+      user: userId,
+      course: courseId,
+    });
 
-    if (!progress.completedLectures.includes(lectureId)) {
-      progress.completedLectures.push(lectureId);
-      progress.totalWatchTime += lecture.duration;
+    if (!enrollment) {
+      return AppError(res, "You are not enrolled in this course", 403);
     }
 
-    const course = await Course.findById(courseId);
+    // Get user's progress for this course
+    const progress = await Progress.findOne({
+      user: userId,
+      course: courseId,
+    }).lean();
 
-    progress.progressPercentage = Math.round(
-      (progress.completedLectures.length / course.totalLectures) * 100,
+    // Create a Set of completed lecture IDs for fast lookup
+    const completedLectureIds = new Set(
+      (progress?.completedLectures || []).map((cl) =>
+        (cl.lectureId || cl).toString()
+      )
     );
 
-    progress.lastAccessedLecture = lectureId;
-    progress.lastAccessedAt = new Date();
+    const courseObjectId = new mongoose.Types.ObjectId(courseId);
 
-    await progress.save();
+    const course = await Course.aggregate([
+      {
+        $match: {
+          _id: courseObjectId,
+          isArchived: { $ne: true },
+        },
+      },
+      {
+        $lookup: {
+          from: "instructors",
+          localField: "instructor",
+          foreignField: "_id",
+          as: "instructor",
+        },
+      },
+      { $unwind: "$instructor" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "instructor.user",
+          foreignField: "_id",
+          as: "instructorUser",
+        },
+      },
+      { $unwind: "$instructorUser" },
+      {
+        $lookup: {
+          from: "sections",
+          localField: "_id",
+          foreignField: "course",
+          as: "sections",
+          pipeline: [
+            {
+              $lookup: {
+                from: "lectures",
+                localField: "_id",
+                foreignField: "section",
+                as: "lectures",
+                pipeline: [
+                  {
+                    $sort: { order: 1 },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                      description: 1,
+                      duration: 1,
+                      order: 1,
+                      isDownloadable: 1,
+                      attachments: 1,
+                      isPreview: 1,
+                      videoUrl: 1,
+                      videoProvider: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $addFields: {
+                totalLectures: { $size: "$lectures" },
+                totalDuration: { $sum: "$lectures.duration" },
+              },
+            },
+            {
+              $sort: { order: 1 },
+            },
+            {
+              $project: {
+                _id: 1,
+                title: 1,
+                description: 1,
+                order: 1,
+                isFreePreview: 1,
+                totalLectures: 1,
+                totalDuration: 1,
+                lectures: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "_id",
+          foreignField: "course",
+          as: "reviews",
+        },
+      },
+      {
+        $addFields: {
+          reviewCount: { $size: "$reviews" },
+          averageRating: {
+            $ifNull: [{ $avg: "$reviews.rating" }, 0],
+          },
+          totalSections: { $size: "$sections" },
+          totalLectures: {
+            $sum: "$sections.totalLectures",
+          },
+          totalDuration: {
+            $sum: "$sections.totalDuration",
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          subtitle: 1,
+          description: 1,
+          whatYouWillLearn: 1,
+          requirements: 1,
+          slug: 1,
+          category: 1,
 
-    res.status(200).json({
-      message: "Lecture completed",
-      progressPercentage: progress.progressPercentage,
+          thumbnail: 1,
+          promoVideo: 1,
+
+          price: 1,
+          discountPrice: 1,
+          currency: 1,
+          isFree: 1,
+
+          status: 1,
+          isFeatured: 1,
+          bestseller: 1,
+          publishedAt: 1,
+          createdAt: 1,
+
+          totalSections: 1,
+          totalLectures: 1,
+          totalDuration: 1,
+
+          reviewCount: 1,
+          averageRating: 1,
+
+          instructor: {
+            _id: "$instructor._id",
+            title: "$instructor.title",
+            expertise: "$instructor.expertise",
+            rating: "$instructor.rating",
+            totalStudents: "$instructor.totalStudents",
+            totalCourses: "$instructor.totalCourses",
+            totalReviews: "$instructor.totalReviews",
+            isFeatured: "$instructor.isFeatured",
+            bio: "$instructor.bio",
+            website: "$instructor.website",
+            linkedin: "$instructor.linkedin",
+            twitter: "$instructor.twitter",
+            youtube: "$instructor.youtube",
+            user: {
+              _id: "$instructorUser._id",
+              firstName: "$instructorUser.firstName",
+              lastName: "$instructorUser.lastName",
+              avatar: "$instructorUser.avatar",
+            },
+          },
+          sections: 1,
+        },
+      },
+    ]);
+
+    if (!course || course.length === 0) {
+      return AppError(res, "Course not found", 404);
+    }
+
+    const courseData = course[0];
+
+    // Add completion status to each lecture
+    courseData.sections = courseData.sections.map((section) => {
+      const lecturesWithStatus = section.lectures.map((lecture) => ({
+        ...lecture,
+        isCompleted: completedLectureIds.has(lecture._id.toString()),
+      }));
+
+      // Calculate section progress
+      const completedCount = lecturesWithStatus.filter(
+        (l) => l.isCompleted
+      ).length;
+      const sectionProgress =
+        section.totalLectures > 0
+          ? Math.round((completedCount / section.totalLectures) * 100)
+          : 0;
+
+      return {
+        ...section,
+        lectures: lecturesWithStatus,
+        completedLectures: completedCount,
+        progressPercentage: sectionProgress,
+      };
+    });
+
+    // Find next lecture to watch
+    let nextLecture = null;
+    let nextLectureSection = null;
+
+    for (const section of courseData.sections) {
+      const incompleteLecture = section.lectures.find((l) => !l.isCompleted);
+      if (incompleteLecture) {
+        nextLecture = incompleteLecture;
+        nextLectureSection = {
+          _id: section._id,
+          title: section.title,
+        };
+        break;
+      }
+    }
+
+    // If all lectures completed, set first lecture as "next"
+    if (
+      !nextLecture &&
+      courseData.sections.length > 0 &&
+      courseData.sections[0].lectures.length > 0
+    ) {
+      nextLecture = courseData.sections[0].lectures[0];
+      nextLectureSection = {
+        _id: courseData.sections[0]._id,
+        title: courseData.sections[0].title,
+      };
+    }
+
+    // Calculate overall progress
+    const totalLectures = courseData.totalLectures || 0;
+    const completedCount = completedLectureIds.size;
+    const overallProgress =
+      totalLectures > 0
+        ? Math.round((completedCount / totalLectures) * 100)
+        : 0;
+
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Course content fetched successfully",
+      data: {
+        ...courseData,
+        enrollment: {
+          enrolledAt: enrollment.enrolledAt,
+          lastAccessedAt: progress?.lastAccessedAt,
+        },
+        progress: {
+          percentage: overallProgress,
+          completedLectures: completedCount,
+          totalLectures: totalLectures,
+          totalWatchTime: progress?.totalWatchTime || 0,
+          lastAccessedLecture: progress?.lastAccessedLecture,
+        },
+        nextLecture: nextLecture
+          ? {
+            lecture: nextLecture,
+            section: nextLectureSection,
+          }
+          : null,
+      },
     });
   } catch (error) {
     return AppError(res, ERROR_MESSAGES.OPERATION_FAILED, 500);
+  }
+};
+const markLectureComplete = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { courseId, lectureId } = req.body;
+
+    // Validate IDs
+    if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(lectureId)) {
+      return AppError(res, "Invalid Course ID or Lecture ID", 400);
+    }
+
+    // Check enrollment
+    const enrollment = await Enrollment.findOne({
+      user: userId,
+      course: courseId,
+    });
+
+    if (!enrollment) {
+      return AppError(res, "You are not enrolled in this course", 403);
+    }
+
+    // Get or create progress
+    let progress = await Progress.findOne({
+      user: userId,
+      course: courseId,
+    });
+
+    if (!progress) {
+      progress = await Progress.create({
+        user: userId,
+        course: courseId,
+        completedLectures: [],
+        progressPercentage: 0,
+        totalWatchTime: 0,
+      });
+    }
+
+    // Check if lecture already completed (simple ObjectId comparison)
+    const alreadyCompleted = progress.completedLectures.some(
+      (lectureObjectId) => lectureObjectId.toString() === lectureId.toString()
+    );
+
+    if (!alreadyCompleted) {
+      // Add lecture ID to completed list (NOT an object, just the ID)
+      progress.completedLectures.push(lectureId);
+
+      // Update last accessed lecture
+      progress.lastAccessedLecture = lectureId;
+      progress.lastAccessedAt = new Date();
+
+      // Get total lectures count
+      const course = await Course.findById(courseId).select('totalLectures');
+      const totalLectures = course?.totalLectures || 1;
+
+      // Calculate progress percentage
+      progress.progressPercentage = Math.round(
+        (progress.completedLectures.length / totalLectures) * 100
+      );
+
+      await progress.save();
+
+      return ApiResponse(res, {
+        statusCode: 200,
+        message: "Lecture marked as complete",
+        data: {
+          progressPercentage: progress.progressPercentage,
+          completedLectures: progress.completedLectures.length,
+          totalLectures: totalLectures,
+        },
+      });
+    }
+
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Lecture already completed",
+      data: {
+        progressPercentage: progress.progressPercentage,
+        completedLectures: progress.completedLectures.length,
+      },
+    });
+
+  } catch (error) {
+    console.error("Mark lecture complete error:", error);
+    return AppError(res, "Failed to mark lecture as complete", 500);
+  }
+};
+
+// Update last accessed lecture 
+const updateLastAccessed = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { courseId, lectureId } = req.body;
+
+    // Validate IDs
+    if (!mongoose.Types.ObjectId.isValid(courseId) || !mongoose.Types.ObjectId.isValid(lectureId)) {
+      return AppError(res, "Invalid Course ID or Lecture ID", 400);
+    }
+
+    // Update or create progress
+    const progress = await Progress.findOneAndUpdate(
+      {
+        user: userId,
+        course: courseId,
+      },
+      {
+        $set: {
+          lastAccessedLecture: lectureId,
+          lastAccessedAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+
+    return ApiResponse(res, {
+      statusCode: 200,
+      message: "Last accessed lecture updated",
+      data: {
+        lastAccessedLecture: progress.lastAccessedLecture,
+        lastAccessedAt: progress.lastAccessedAt,
+      },
+    });
+
+  } catch (error) {
+    return AppError(res, "Failed to update progress", 500);
   }
 };
 
@@ -1472,6 +1917,8 @@ export {
   generateCertificate,
   verifyCertificate,
   getEnrolledCourses,
-  completeLecture,
   createReview,
+  getCourseContent,
+  markLectureComplete,
+  updateLastAccessed
 };

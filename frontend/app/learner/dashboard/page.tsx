@@ -1,11 +1,11 @@
 "use client";
-import { useEffect } from "react";
+
 import { motion } from "framer-motion";
-import { ContinueLearning } from "@/components/dashboard/ContinueLearning";
 import { LearningProgressChart } from "@/components/dashboard/LearningProgressChart";
 import { EnrolledCoursesGrid } from "@/components/dashboard/EnrolledCoursesGrid";
 import { Achievements } from "@/components/dashboard/Achievements";
 import { Zap } from "lucide-react";
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -14,24 +14,36 @@ const containerVariants = {
   },
 };
 
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
+
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] selection:bg-[#2845D6]/30">
       {/* Decorative Noise Overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('/noise.png')]"></div>
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('/noise.png')]" />
 
       <motion.main
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12"
+        className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-12">
-            <ContinueLearning />
-          </div>
-          <div className="space-y-8">
+        {/* TOP SECTION: CHART & SIDEBAR */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          {/* LEFT: MAIN CHART (Spans 8 columns on large screens) */}
+          <motion.div variants={itemVariants} className="lg:col-span-8 h-full">
+            <LearningProgressChart />
+          </motion.div>
+
+          {/* RIGHT: SIDEBAR (Spans 4 columns on large screens) */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* STREAK CARD */}
             <motion.div
+              variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[#2845D6] to-[#06D001] text-white shadow-2xl shadow-blue-500/20 overflow-hidden relative group border border-white/10"
             >
@@ -72,15 +84,19 @@ export default function DashboardPage() {
               >
                 <Zap size={180} strokeWidth={1} className="rotate-12" />
               </motion.div>
-
-              {/* Decorative Blur Glass */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full -mr-16 -mt-16" />
             </motion.div>
-            <Achievements />
+
+            {/* ACHIEVEMENTS */}
+            <motion.div variants={itemVariants}>
+              <Achievements />
+            </motion.div>
           </div>
         </div>
-        <LearningProgressChart />
-        <EnrolledCoursesGrid />
+
+        {/* BOTTOM SECTION: FULL WIDTH GRID */}
+        <motion.div variants={itemVariants} className="pt-4 border-t border-slate-200 dark:border-white/5">
+          <EnrolledCoursesGrid />
+        </motion.div>
       </motion.main>
     </div>
   );

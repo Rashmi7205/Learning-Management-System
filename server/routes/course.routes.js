@@ -14,8 +14,10 @@ import {
   createReview,
   generateCertificate,
   verifyCertificate,
-  completeLecture,
   getEnrolledCourses,
+  getCourseContent,
+  markLectureComplete,
+  updateLastAccessed,
 } from "../controller/course.controller.js";
 import isLoggedIn, {
   isAdmin,
@@ -62,7 +64,8 @@ courseRouter.delete(
 //   getFeaturedCourses,
 courseRouter.get("/featured", getFeaturedCourses);
 courseRouter.get("/categories", getCourseCategories);
-courseRouter.get("/:courseId", getCourseById);
+courseRouter.get("/enrolled", isLoggedIn, getEnrolledCourses);
+
 //   getCoursesByInstructor,
 courseRouter.get(
   "/instructor/:instructorId",
@@ -75,12 +78,11 @@ courseRouter.put("/publish/:courseId", isLoggedIn, isInstructor, publishCourse);
 courseRouter.put("/pricing/:courseId", isLoggedIn, isInstructor, updatePricing);
 // archive course
 courseRouter.put("/:courseId/archive", isLoggedIn, isInstructor, archiveCourse);
-// get certificate
-// courseRouter.get("/:courseId/certificate", isLoggedIn, getCertificate);
+courseRouter.get('/:courseId/content', isLoggedIn, getCourseContent);
+courseRouter.post('/lecture/complete', isLoggedIn, markLectureComplete);
+courseRouter.post('/lecture/access', isLoggedIn, updateLastAccessed);
 // verify certificate
 courseRouter.post("/:courseId/verify", isLoggedIn, verifyCertificate);
-// complete lecture
-// courseRouter.put("/:courseId/complete", isLoggedIn, completeLecture);
 // create review
 courseRouter.post("/:courseId/review", isLoggedIn, createReview);
 
@@ -88,9 +90,6 @@ courseRouter.post("/:courseId/review", isLoggedIn, createReview);
 courseRouter.post("/:courseId/certificate", isLoggedIn, generateCertificate);
 //verify certificate
 courseRouter.post("/:courseId/verify", isLoggedIn, verifyCertificate);
-// enroll course
-courseRouter.post("/enrolled", isLoggedIn, getEnrolledCourses);
-// completeLecture
-courseRouter.put("/:courseId/complete", isLoggedIn, completeLecture);
+courseRouter.get("/:courseId", getCourseById);
 
 export default courseRouter;

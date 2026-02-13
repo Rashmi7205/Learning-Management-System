@@ -149,10 +149,10 @@ export default function ProfilePage() {
                   <Badge variant="outline">
                     {instructorData.yearsOfExperience}+ years experience
                   </Badge>
-                  <Badge variant="secondary">
+                  {/* <Badge variant="secondary">
                     Joined{" "}
-                    {new Date(instructorData.createdAt).toLocaleDateString()}
-                  </Badge>
+                    {instructorData.createdAt}
+                  </Badge> */}
                 </div>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-foreground mb-4">
                 Expertise & Skills
               </h3>
-              <div className="flex flex-wrap gap-2">
+              {/* <div className="flex flex-wrap gap-2">
                 {instructorData.expertise.map((skill, idx) => (
                   <Badge
                     key={idx}
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                     {skill}
                   </Badge>
                 ))}
-              </div>
+              </div> */}
             </Card>
 
             {/* Certifications */}
@@ -339,7 +339,7 @@ export default function ProfilePage() {
                 <Award className="w-5 h-5" />
                 Certifications
               </h3>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 {instructorData.certifications.map((cert, idx) => (
                   <div
                     key={idx}
@@ -349,7 +349,7 @@ export default function ProfilePage() {
                     <span className="text-sm text-foreground">{cert}</span>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </Card>
           </div>
         </div>

@@ -166,26 +166,43 @@ export const courseService = {
   },
 };
 
-
-// PROGRESS API
-export const progressService = {
-  get: async (courseId: string) => {
-    const response = await apiClient.get<Progress>(`/progress/${courseId}`);
+export const learningService = {
+  /**
+   * Get course content with sections, lectures, and progress
+   */
+  getCourseContent: async (courseId: string) => {
+    const response = await apiClient.get(`/courses/${courseId}/content`);
     return response.data;
   },
 
-  update: async (courseId: string, lectureId: string, watchTime: number) => {
-    const response = await apiClient.put<Progress>(`/progress/${courseId}`, {
-      completedLecture: lectureId,
-      watchTime,
+  /**
+   * Mark a lecture as complete
+   */
+  markLectureComplete: async (courseId: string, lectureId: string) => {
+    const response = await apiClient.post("/courses/lecture/complete", {
+      courseId,
+      lectureId,
     });
     return response.data;
   },
 
-  markLectureComplete: async (courseId: string, lectureId: string) => {
-    const response = await apiClient.post<Progress>(
-      `/progress/${courseId}/lecture-complete`,
-      { lectureId }
+  /**
+   * Update last accessed lecture (for resume functionality)
+   */
+  updateLastAccessed: async (courseId: string, lectureId: string) => {
+    const response = await apiClient.post("/courses/lecture/access", {
+      courseId,
+      lectureId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get lecture details
+   */
+  getLectureDetails: async (courseId: string, lectureId: string) => {
+    const response = await apiClient.get(
+      `/course/${courseId}/lecture/${lectureId}`,
     );
     return response.data;
   },

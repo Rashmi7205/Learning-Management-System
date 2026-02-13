@@ -585,17 +585,18 @@ export interface DashboardStats {
 }
 
 export interface EnrolledCourse {
-  _id: string;
+  enrollmentId: string;
   course: {
     _id: string;
     title: string;
-    instructor: {
-      user: { firstName: string; lastName: string; avatar: string };
-    };
-    thumbnail: string;
-    totalLectures: number;
+    thumbnail: Media;
   };
-  progress: number;
+  progress: {
+    completedLectures: number;
+    lastAccessedAt?: Date;
+    percentage: number;
+    totalWatchTime: number;
+  };
   status: "not_started" | "in_progress" | "completed";
   lastAccessedAt: string;
 }
