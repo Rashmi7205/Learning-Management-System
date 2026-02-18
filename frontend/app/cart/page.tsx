@@ -127,16 +127,17 @@ const CartPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0F172A] text-slate-200">
+    <div className="min-h-screen flex flex-col bg-[#0F172A] text-slate-200 overflow-x-hidden">
       <Header />
       <main className="flex-grow">
-        <div className="text-white py-16 relative overflow-hidden border-b border-white/5">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#2845D6]/10 to-transparent pointer-events-none" />
+        {/* Banner Section */}
+        <div className="text-white py-8 md:py-16 relative overflow-hidden border-b border-white/5">
+          <div className="absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l from-[#2845D6]/10 to-transparent pointer-events-none" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <h1 className="font-display text-4xl font-bold mb-3 tracking-tight">
+            <h1 className="font-display text-2xl md:text-4xl font-bold mb-3 tracking-tight">
               Shopping Cart
             </h1>
-            <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+            <div className="flex items-center gap-2 text-slate-500 text-xs md:text-sm font-medium">
               <Link href="/" className="hover:text-[#2845D6] transition-colors">
                 Home
               </Link>
@@ -146,210 +147,174 @@ const CartPage = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {loading && cartItems.length === 0 ? (
             <div className="flex justify-center py-20">
               <Loader2 className="animate-spin w-10 h-10 text-[#2845D6]" />
             </div>
           ) : cartItems.length === 0 ? (
             /* Empty State */
-            <div className="text-center py-24 bg-white/5 backdrop-blur-sm rounded-[32px] border-2 border-dashed border-white/10">
-              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-[#2845D6]/10 mb-6">
-                <ShoppingCart className="w-10 h-10 text-[#2845D6]" />
+            <div className="text-center py-16 md:py-24 bg-white/5 backdrop-blur-sm rounded-[24px] md:rounded-[32px] border-2 border-dashed border-white/10 px-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#2845D6]/10 mb-6">
+                <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-[#2845D6]" />
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">
+              <h2 className="text-xl md:text-3xl font-bold text-white mb-4">
                 Your cart is feeling lonely.
               </h2>
               <Link href="/courses">
-                <Button className="bg-[#2845D6] hover:bg-[#1f38b0] rounded-full px-8 hover:scale-105 transition-all">
+                <Button className="bg-[#2845D6] hover:bg-[#1f38b0] rounded-full px-8">
                   Explore Courses <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-10 items-start">
-              <div className="lg:col-span-2 space-y-8">
+            /* MAIN CONTENT GRID */
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 md:gap-10 items-start">
+              {/* LEFT SIDE: CART ITEMS */}
+              <div className="w-full lg:col-span-2 space-y-6 md:space-y-8 order-2 lg:order-1">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                      {cartItems?.length} Courses in Cart
-                      <span className="h-px w-12 bg-white/10" />
+                    <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-3">
+                      {cartItems?.length} Courses
+                      <span className="hidden sm:block h-px w-12 bg-white/10" />
                     </h2>
                     <Button
                       variant="ghost"
-                      className="text-sm text-slate-400 hover:text-red-400"
+                      className="text-xs md:text-sm text-slate-400 hover:text-red-400 h-auto p-0"
                       onClick={handleClearCart}
                     >
                       Clear All
                     </Button>
                   </div>
 
-                  {cartItems &&
-                    cartItems?.map((item: CartItem) => (
-                      <div
-                        key={item._id}
-                        className="group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 hover:border-[#2845D6]/30 transition-all shadow-xl"
-                      >
-                        <div className="flex flex-col sm:flex-row gap-6">
-                          <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden shrink-0">
-                            <Image
-                              src={item?.thumbnail?.secureUrl || "#"}
-                              alt={item?.title}
-                              fill
-                              className="object-cover"
-                            />
+                  {cartItems?.map((item: CartItem) => (
+                    <div
+                      key={item._id}
+                      className="group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-4 md:p-5 hover:border-[#2845D6]/30 transition-all"
+                    >
+                      <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
+                        {/* Thumbnail */}
+                        <div className="relative w-full sm:w-40 md:w-48 aspect-video rounded-xl overflow-hidden shrink-0">
+                          <Image
+                            src={
+                              item?.thumbnail?.secureUrl || "/placeholder.png"
+                            }
+                            alt={item?.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <Link
+                              href={`/courses/${generateSlug(item?.title || "")}?cid=${item?._id}`}
+                            >
+                              <h3 className="font-bold text-white text-base md:text-lg group-hover:text-[#2845D6] transition-colors line-clamp-2">
+                                {item?.title}
+                              </h3>
+                            </Link>
+                            <button
+                              onClick={() => handleRemove(item?._id)}
+                              className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg shrink-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                          <div className="flex-1 flex flex-col">
-                            <div className="flex justify-between items-start">
-                              <Link
-                                href={`/courses/${generateSlug(item?.title || "")}?cid=${item?._id}`}
-                              >
-                                <h3 className="font-bold text-white text-lg group-hover:text-[#2845D6] transition-colors">
-                                  {item?.title}
-                                </h3>
-                              </Link>
-                              <button
-                                onClick={() => handleRemove(item?._id)}
-                                className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
 
-                            {/* Instructor Section with Shadcn Avatar */}
-                            <div className="flex items-center gap-2 mt-2">
-                              <Avatar className="h-6 w-6 border border-white/10">
-                                <AvatarImage
-                                  src={item?.instructor?.firstName}
-                                  alt={item?.instructor?.firstName}
-                                />
-                                <AvatarFallback className="text-[10px] bg-[#2845D6] text-white">
-                                  {item?.instructor?.firstName[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <p className="text-sm text-slate-400">
-                                By{" "}
-                                <span className="text-slate-200 font-medium">
-                                  {item?.instructor?.firstName}{" "}
-                                  {item?.instructor?.lastName}
-                                </span>
-                              </p>
-                            </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Avatar className="h-5 w-5 md:h-6 md:w-6">
+                              <AvatarFallback className="text-[8px] md:text-[10px] bg-[#2845D6] text-white">
+                                {item?.instructor?.firstName?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="text-xs md:text-sm text-slate-400 truncate">
+                              By{" "}
+                              <span className="text-slate-200">
+                                {item?.instructor?.firstName}
+                              </span>
+                            </p>
+                          </div>
 
-                            <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
-                              <div className="flex items-center gap-3">
-                                <span className="text-2xl font-black text-white">
-                                  ₹{item?.discountPrice}
-                                </span>
-                                <span className="text-sm text-slate-500 line-through">
-                                  ₹{item?.price}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => handleSaveForLater(item?._id)}
-                                className="text-xs font-bold text-slate-400 hover:text-[#2845D6] flex items-center gap-1.5 uppercase tracking-wider transition-colors"
-                              >
-                                <Heart className="w-3.5 h-3.5" /> Save for Later
-                              </button>
+                          <div className="mt-4 sm:mt-auto flex items-center justify-between pt-4 border-t border-white/5">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-xl md:text-2xl font-black text-white">
+                                ₹{item?.discountPrice}
+                              </span>
+                              <span className="text-xs md:text-sm text-slate-500 line-through">
+                                ₹{item?.price}
+                              </span>
                             </div>
+                            <button
+                              onClick={() => handleSaveForLater(item?._id)}
+                              className="text-[10px] md:text-xs font-bold text-slate-400 hover:text-[#2845D6] flex items-center gap-1.5 uppercase tracking-wider"
+                            >
+                              <Heart className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                              <span className="hidden xs:inline">
+                                Save for Later
+                              </span>
+                            </button>
                           </div>
                         </div>
                       </div>
-                    ))}
-                </div>
-
-                {/* Saved for Later Section */}
-                {wishlistItems.length > 0 && (
-                  <div className="pt-8 border-t border-white/5">
-                    <h2 className="text-xl font-bold text-white mb-6">
-                      Saved for later
-                    </h2>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {wishlistItems.map((item: any) => (
-                        <div
-                          key={item._id}
-                          className="group bg-white/5 border border-white/10 rounded-xl p-4 flex gap-4 hover:border-white/20 transition-all"
-                        >
-                          <div className="w-24 h-16 relative rounded-lg overflow-hidden shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <Image
-                              src={item.thumbnail?.secureUrl || item.thumbnail}
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-white truncate mb-1">
-                              {item.title}
-                            </h4>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-[#06D001]">
-                                ₹{item.discountPrice}
-                              </span>
-                              <button
-                                onClick={() => handleMoveToCart(item._id)}
-                                className="text-xs font-bold text-[#2845D6] hover:text-white transition-colors"
-                              >
-                                Move to Cart
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
 
-              {/* Checkout Summary */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24 space-y-6">
-                  <div className="bg-[#1E293B] rounded-[32px] shadow-2xl border border-white/10 p-8">
-                    <h3 className="text-xl font-bold text-white mb-6">
+              {/* RIGHT SIDE: SUMMARY CARD */}
+              <div className="w-full lg:col-span-1 order-1 lg:order-2">
+                <div className="lg:sticky lg:top-24 space-y-6">
+                  <div className="bg-[#1E293B] rounded-[24px] md:rounded-[32px] shadow-2xl border border-white/10 p-6 md:p-8">
+                    <h3 className="text-lg md:text-xl font-bold text-white mb-6">
                       Order Summary
                     </h3>
-                    <div className="space-y-4 mb-8">
-                      <div className="flex justify-between text-slate-400 text-sm">
+                    <div className="space-y-3 mb-8">
+                      <div className="flex justify-between text-slate-400 text-xs md:text-sm">
                         <span>Original Price</span>
                         <span className="line-through">
                           ₹{originalSubtotal.toFixed(2)}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[#06D001] font-bold text-sm">
+                      <div className="flex justify-between text-[#06D001] font-bold text-xs md:text-sm">
                         <span>Savings</span>
-                        <span>-${totalSavings.toFixed(2)}</span>
+                        <span>-₹{totalSavings.toFixed(2)}</span>
                       </div>
                       <div className="pt-4 border-t border-white/10 flex justify-between items-end">
-                        <span className="font-bold text-slate-400 uppercase text-xs">
+                        <span className="font-bold text-slate-400 uppercase text-[10px]">
                           Total Amount
                         </span>
-                        <span className="text-4xl font-black text-[#2845D6] tracking-tighter">
+                        <span className="text-3xl md:text-4xl font-black text-[#2845D6] tracking-tighter">
                           ₹{total.toFixed(2)}
                         </span>
                       </div>
                     </div>
+
+                    {/* Promo Code */}
                     <div className="flex gap-2 mb-6">
                       <input
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
-                        placeholder="Promo code"
-                        className="flex-1 px-4 py-2 bg-black/20 border border-white/10 rounded-xl text-white outline-none"
+                        placeholder="SAVE20"
+                        className="flex-1 px-3 py-2 bg-black/20 border border-white/10 rounded-xl text-sm text-white outline-none focus:border-[#2845D6]/50"
                       />
                       <Button
                         onClick={applyPromoCode}
                         variant="outline"
-                        className="rounded-xl border-white/10 text-white"
+                        className="rounded-xl border-white/10 text-white text-xs h-10"
                       >
                         Apply
                       </Button>
                     </div>
+
                     <Button
                       onClick={handleCheckout}
-                      disabled={isProcessing || cartItems.length === 0}
-                      className="w-full bg-[#2845D6] hover:bg-[#1f38b0] h-14 rounded-2xl text-lg font-bold transition-all hover:scale-[1.02]"
+                      disabled={isProcessing}
+                      className="w-full bg-[#2845D6] hover:bg-[#1f38b0] h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold"
                     >
                       {isProcessing ? (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        <Loader2 className="animate-spin" />
                       ) : (
                         "Checkout Now"
                       )}

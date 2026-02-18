@@ -121,9 +121,11 @@ export function Navbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                   >
                     <LayoutDashboard size={16} /> Dashboard
                   </Link>
-                  <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] transition-colors">
+                   <Link
+                    href="/learner/dashboard"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] transition-colors">
                     <Settings size={16} /> Profile
-                  </button>
+                  </Link>
                   <div className="h-px bg-slate-100 dark:bg-white/5 my-2 mx-2" />
                   <button
                     onClick={handleLogout}

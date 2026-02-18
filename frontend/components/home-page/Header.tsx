@@ -180,9 +180,12 @@ const Header = () => {
                           >
                             <LayoutDashboard size={16} /> Dashboard
                           </Link>
-                          <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] dark:hover:text-white transition-colors">
+                          <Link
+                            href="/learner/profile"
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] dark:hover:text-white transition-colors"
+                          >
                             <Settings size={16} /> Profile Settings
-                          </button>
+                          </Link>
                           <div className="h-px bg-slate-100 dark:bg-white/5 my-2 mx-2" />
                           <button
                             onClick={handleLogout}
@@ -265,19 +268,32 @@ const Header = () => {
             </div>
 
             <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
-              <Link href="/login" className="w-full">
-                <Button
-                  variant="ghost"
-                  className="w-full text-white justify-start"
-                >
-                  <LogIn className="w-4 h-4 mr-2" /> Sign In
-                </Button>
-              </Link>
-              <Link href="/register" className="w-full">
-                <Button className="w-full bg-[#2845D6] text-white">
-                  Get Started <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/login" className="w-full">
+                  <Button
+                    variant="ghost"
+                    className="w-full text-white justify-start"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/learner/dashboard" className="w-full">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-white justify-start"
+                    >
+                      <LogIn className="w-4 h-4 mr-2" /> Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="w-full">
+                    <Button className="w-full bg-[#2845D6] text-white">
+                      Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>
