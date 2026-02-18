@@ -22,13 +22,15 @@ import {
   moveToWishlist,
   clearCart,
   fetchWishlist,
-  moveToCart
+  moveToCart,
 } from "@/lib/store/slices/cartSlice";
 import Footer from "@/components/home-page/Footer";
 import Header from "@/components/home-page/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { paymentService } from "@/lib/services/api";
+import { generateSlug } from "@/lib/utils";
+import { CartItem } from "@/lib/types";
 
 const CartPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -80,9 +82,11 @@ const CartPage = () => {
     }
   };
 
-  const { items: cartItems, wishlistItems,loading } = useSelector(
-    (state: RootState) => state.cart
-  );
+  const {
+    items: cartItems,
+    wishlistItems,
+    loading,
+  } = useSelector((state: RootState) => state.cart);
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       const script = document.createElement("script");
@@ -99,8 +103,14 @@ const CartPage = () => {
   }, [dispatch]);
 
   // 3. Calculation logic
-  const subtotal = cartItems.reduce((sum, item: any) => sum + item.discountPrice, 0);
-  const originalSubtotal = cartItems.reduce((sum, item: any) => sum + item.price, 0);
+  const subtotal = cartItems.reduce(
+    (sum, item: any) => sum + item.discountPrice,
+    0,
+  );
+  const originalSubtotal = cartItems.reduce(
+    (sum, item: any) => sum + item.price,
+    0,
+  );
   const totalSavings = originalSubtotal - subtotal;
   const total = subtotal - discount;
 
@@ -162,7 +172,7 @@ const CartPage = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                      {cartItems.length} Courses in Cart
+                      {cartItems?.length} Courses in Cart
                       <span className="h-px w-12 bg-white/10" />
                     </h2>
                     <Button
@@ -174,81 +184,78 @@ const CartPage = () => {
                     </Button>
                   </div>
 
-                  {cartItems.map((item: any) => (
-                    <div
-                      key={item._id}
-                      className="group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 hover:border-[#2845D6]/30 transition-all shadow-xl"
-                    >
-                      <div className="flex flex-col sm:flex-row gap-6">
-                        <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden shrink-0">
-                          <Image
-                            src={item.thumbnail?.secureUrl || item.thumbnail}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col">
-                          <div className="flex justify-between items-start">
-                            <Link
-                              href={`/courses/${item.title
-                                .toLowerCase()
-                                .trim()
-                                .replace(/[^a-z0-9\s-]/g, "")
-                                .replace(/\s+/g, "-")}?cid=${item._id}`}
-                            >
-                              <h3 className="font-bold text-white text-lg group-hover:text-[#2845D6] transition-colors">
-                                {item.title}
-                              </h3>
-                            </Link>
-                            <button
-                              onClick={() => handleRemove(item._id)}
-                              className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                  {cartItems &&
+                    cartItems?.map((item: CartItem) => (
+                      <div
+                        key={item._id}
+                        className="group bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 hover:border-[#2845D6]/30 transition-all shadow-xl"
+                      >
+                        <div className="flex flex-col sm:flex-row gap-6">
+                          <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden shrink-0">
+                            <Image
+                              src={item?.thumbnail?.secureUrl || "#"}
+                              alt={item?.title}
+                              fill
+                              className="object-cover"
+                            />
                           </div>
-
-                          {/* Instructor Section with Shadcn Avatar */}
-                          <div className="flex items-center gap-2 mt-2">
-                            <Avatar className="h-6 w-6 border border-white/10">
-                              <AvatarImage
-                                src={item.instructor?.avatar}
-                                alt={item.instructor?.firstName}
-                              />
-                              <AvatarFallback className="text-[10px] bg-[#2845D6] text-white">
-                                {item.instructor?.firstName?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <p className="text-sm text-slate-400">
-                              By{" "}
-                              <span className="text-slate-200 font-medium">
-                                {item.instructor?.firstName}{" "}
-                                {item.instructor?.lastName}
-                              </span>
-                            </p>
-                          </div>
-
-                          <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl font-black text-white">
-                                ${item.discountPrice}
-                              </span>
-                              <span className="text-sm text-slate-500 line-through">
-                                ${item.price}
-                              </span>
+                          <div className="flex-1 flex flex-col">
+                            <div className="flex justify-between items-start">
+                              <Link
+                                href={`/courses/${generateSlug(item?.title || "")}?cid=${item?._id}`}
+                              >
+                                <h3 className="font-bold text-white text-lg group-hover:text-[#2845D6] transition-colors">
+                                  {item?.title}
+                                </h3>
+                              </Link>
+                              <button
+                                onClick={() => handleRemove(item?._id)}
+                                className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                            <button
-                              onClick={() => handleSaveForLater(item._id)}
-                              className="text-xs font-bold text-slate-400 hover:text-[#2845D6] flex items-center gap-1.5 uppercase tracking-wider transition-colors"
-                            >
-                              <Heart className="w-3.5 h-3.5" /> Save for Later
-                            </button>
+
+                            {/* Instructor Section with Shadcn Avatar */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <Avatar className="h-6 w-6 border border-white/10">
+                                <AvatarImage
+                                  src={item?.instructor?.firstName}
+                                  alt={item?.instructor?.firstName}
+                                />
+                                <AvatarFallback className="text-[10px] bg-[#2845D6] text-white">
+                                  {item?.instructor?.firstName[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <p className="text-sm text-slate-400">
+                                By{" "}
+                                <span className="text-slate-200 font-medium">
+                                  {item?.instructor?.firstName}{" "}
+                                  {item?.instructor?.lastName}
+                                </span>
+                              </p>
+                            </div>
+
+                            <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
+                              <div className="flex items-center gap-3">
+                                <span className="text-2xl font-black text-white">
+                                  ₹{item?.discountPrice}
+                                </span>
+                                <span className="text-sm text-slate-500 line-through">
+                                  ₹{item?.price}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handleSaveForLater(item?._id)}
+                                className="text-xs font-bold text-slate-400 hover:text-[#2845D6] flex items-center gap-1.5 uppercase tracking-wider transition-colors"
+                              >
+                                <Heart className="w-3.5 h-3.5" /> Save for Later
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
 
                 {/* Saved for Later Section */}
@@ -277,7 +284,7 @@ const CartPage = () => {
                             </h4>
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-bold text-[#06D001]">
-                                ${item.discountPrice}
+                                ₹{item.discountPrice}
                               </span>
                               <button
                                 onClick={() => handleMoveToCart(item._id)}
@@ -305,7 +312,7 @@ const CartPage = () => {
                       <div className="flex justify-between text-slate-400 text-sm">
                         <span>Original Price</span>
                         <span className="line-through">
-                          ${originalSubtotal.toFixed(2)}
+                          ₹{originalSubtotal.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-[#06D001] font-bold text-sm">
@@ -317,7 +324,7 @@ const CartPage = () => {
                           Total Amount
                         </span>
                         <span className="text-4xl font-black text-[#2845D6] tracking-tighter">
-                          ${total.toFixed(2)}
+                          ₹{total.toFixed(2)}
                         </span>
                       </div>
                     </div>

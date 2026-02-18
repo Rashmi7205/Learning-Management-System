@@ -478,30 +478,15 @@ export interface Category {
 }
 
 export interface CartItem {
-  course: {
-    _id: string;
-    title: string;
-    subtitle: string;
-    thumbnail?: {
-      publicId: string;
-      secureUrl: string;
-    };
-    price: number;
-    discountPrice?: number;
-    instructor: {
-      _id: string;
-      user: {
-        _id: string;
-        firstName: string;
-        lastName: string;
-      };
-    };
-    category: string[];
-    averageRating?: number;
-    reviewCount?: number;
-    isFree?: boolean;
+  _id:string;
+  title:string;
+  thumbnail:Media;
+  instructor:{
+    firstName:string;
+    lastName:string;
   };
-  addedAt: string;
+  price:number;
+  discountPrice:number;
 }
 
 export interface WishlistItem {

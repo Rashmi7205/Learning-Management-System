@@ -23,7 +23,6 @@ const CoursesSection = () => {
     if (courses.length === 0) {
       dispatch(getFeaturedCoursesList());
     }
-    console.log(courses);
   }, [courses.length, dispatch]);
 
   return (

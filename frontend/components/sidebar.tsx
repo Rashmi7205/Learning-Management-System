@@ -56,13 +56,12 @@ export function Sidebar({
         {/* Header - Branding */}
         <div className="h-20 flex items-center px-6 border-b border-slate-200/50 dark:border-white/5">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="p-2 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
+            <div className="p-2 rounded-xl shrink-0">
               <Image
                 src="/images/logo.png"
                 alt="Logo"
                 width={24}
                 height={24}
-                className="brightness-0 invert"
               />
             </div>
             {!isCollapsed && (

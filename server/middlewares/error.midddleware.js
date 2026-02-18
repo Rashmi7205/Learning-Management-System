@@ -1,4 +1,4 @@
-const errorMiddleWare = (err,req,res,next)=>{
+const errorMiddleWare = (err,req,res)=>{
 
     err.statusCode = err.statusCode||500;
     err.message = err.message || "Something Went Wrong!";

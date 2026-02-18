@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/store/hooks";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "@/lib/store/slices/authSlice";
-import { LayoutDashboard, BookOpen, TrendingUp, Settings } from "lucide-react";
+import { LayoutDashboard, BookOpen, TrendingUp, Settings, ShoppingCartIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const sidebarLinks = [
@@ -25,6 +25,16 @@ const sidebarLinks = [
     label: "Progress",
     href: "/learner/progress",
     icon: <TrendingUp className="w-5 h-5" />,
+  },
+  {
+    label: "Explore Course",
+    href: "/courses",
+    icon: <BookOpen className="w-5 h-5" />,
+  },
+  {
+    label: "Cart",
+    href: "/cart",
+    icon: <ShoppingCartIcon className="w-5 h-5" />,
   },
   {
     label: "Settings",

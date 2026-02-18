@@ -4,3 +4,4 @@
 /server/uploads/*
 /server/seed.js
 /frontend/app/demo/*
+/frontend/.next

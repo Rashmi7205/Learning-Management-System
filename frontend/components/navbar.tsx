@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, User, Settings, ChevronDown, Bell, LogOut } from "lucide-react";
+import {
+  Menu,
+  User,
+  Settings,
+  ChevronDown,
+  Bell,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useAuth } from "@/lib/store/hooks";
@@ -15,17 +23,19 @@ export function Navbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   const handleLogout = async () => {
     // @ts-ignore
-    await dispatch(logoutUser());
+    dispatch(logoutUser());
     router.push("/login");
   };
 
   useEffect(() => {
-    // @ts-ignore
-    dispatch(fetchUserProfile());
+    if (!user && !isLoading) {
+      // @ts-ignore
+      dispatch(fetchUserProfile());
+    }
   }, [dispatch]);
 
   const initials =
@@ -78,7 +88,7 @@ export function Navbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 {user?.firstName || "Learner"}
               </p>
               <p className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter mt-1">
-                Premium Plan
+                {user?.role}
               </p>
             </div>
             <ChevronDown
@@ -106,13 +116,13 @@ export function Navbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
                 <div className="p-2">
                   <Link
-                    href="/learner/profile"
+                    href="/learner/dashboard"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] transition-colors"
                   >
-                    <User size={16} /> Profile Settings
+                    <LayoutDashboard size={16} /> Dashboard
                   </Link>
                   <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] transition-colors">
-                    <Settings size={16} /> Preferences
+                    <Settings size={16} /> Profile
                   </button>
                   <div className="h-px bg-slate-100 dark:bg-white/5 my-2 mx-2" />
                   <button

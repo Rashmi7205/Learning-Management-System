@@ -55,7 +55,6 @@ export const getCoursesList = createAsyncThunk<
       searchText,
       category,
     );
-    console.log(response);
     return {
       courses: formatCourseData(response.data.courses),
       pagination: response.data.pagination,

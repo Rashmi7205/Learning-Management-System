@@ -25,7 +25,6 @@ const InstructorsSection = () => {
     if (!instructors.length) {
       dispatch(fetchFeaturedInstructors());
     }
-    console.log(instructors);
   }, [dispatch, instructors.length]);
 
   return (

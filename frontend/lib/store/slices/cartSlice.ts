@@ -192,7 +192,6 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Clear error
     clearError: (state) => {
       state.error = null;
     },

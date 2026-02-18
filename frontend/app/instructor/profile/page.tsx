@@ -110,13 +110,16 @@ export default function ProfilePage() {
           <div className="p-6 flex items-start justify-between">
             <div className="flex items-start gap-6">
               <img
-                src={instructorData?.user?.avatar?.secureUrl || "/placeholder.svg"}
+                src={
+                  instructorData?.user?.avatar?.secureUrl || "/placeholder.svg"
+                }
                 alt={`${instructorData?.user?.firstName} ${instructorData?.user?.lastName}`}
                 className="w-24 h-24 rounded-lg border-2 border-primary"
               />
               <div>
                 <h2 className="text-2xl font-bold text-foreground">
-                  {instructorData?.user?.firstName} {instructorData?.user?.lastName}
+                  {instructorData?.user?.firstName}{" "}
+                  {instructorData?.user?.lastName}
                 </h2>
                 <p className="text-muted-foreground">{instructorData.title}</p>
 
@@ -315,7 +318,6 @@ export default function ProfilePage() {
                 </div>
               )}
             </Card>
-
             {/* Expertise & Skills */}
             <Card className="bg-card border-border p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">

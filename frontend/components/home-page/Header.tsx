@@ -1,16 +1,34 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, LogIn, Menu, X, ShoppingCart } from "lucide-react";
+import {
+  ArrowRight,
+  LogIn,
+  Menu,
+  X,
+  ShoppingCart,
+  ChevronDown,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAppSelector, useAuth } from "@/lib/store/hooks";
+import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "@/lib/store/hooks";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { cn } from "@/lib/utils";
+import { fetchUserProfile, logoutUser } from "@/lib/store/slices/authSlice";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const cartCount = useAppSelector((state)=>state.cart.itemCount);
+  const cartCount = useAppSelector((state) => state.cart.itemCount);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { user, isAuthenticated ,isLoading} = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +43,10 @@ const Header = () => {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
+    }
+    if(!user && !isLoading){
+      // @ts-ignore
+      dispatch(fetchUserProfile());
     }
     return () => {
       document.body.style.overflow = "unset";
@@ -42,10 +64,18 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const handleLogout = async () => {
+    // @ts-ignore
+    dispatch(logoutUser());
+    router.push("/login");
+  };
+
+  const initials =
+    `${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`.toUpperCase();
   return (
     <>
       <header
-      id="top"
+        id="top"
         className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
             ? "backdrop-blur-lg shadow-md bg-slate-900/80"
@@ -70,50 +100,122 @@ const Header = () => {
             </Link>
 
             {/* Desktop Navigation */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-white hover:text-[#2845D6] transition-colors font-medium relative group"
+                  className="text-slate-600 dark:text-slate-300 hover:text-[#2845D6] dark:hover:text-white transition-all duration-300 font-bold text-sm relative group"
                 >
                   {link.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#2845D6] group-hover:w-full transition-all duration-300"></span>
                 </Link>
               ))}
-              <div className="h-6 w-px bg-white/10 mx-2" /> {/* Divider */}
+              <div className="h-4 w-px bg-slate-200 dark:bg-white/10 mx-2" />{" "}
+              {/* Refined Divider */}
               {/* Cart Icon */}
-              <Link href="/cart" className="relative p-2 group">
-                <ShoppingCart className="w-5 h-5 text-white group-hover:text-[#2845D6] transition-colors" />
+              <Link
+                href="/cart"
+                className="relative p-2 group transition-transform active:scale-90"
+              >
+                <ShoppingCart className="w-5 h-5 text-slate-600 dark:text-slate-300 group-hover:text-[#2845D6] dark:group-hover:text-white transition-colors" />
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-[#2845D6] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#0F172A]">
+                  <span className="absolute top-0 right-0 w-4 h-4 bg-[#06D001] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#020617] animate-in zoom-in">
                     {cartCount}
                   </span>
                 )}
               </Link>
-              <Link href="/login" >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300 group cursor-pointer"
-                >
-                  <LogIn className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                  <span>Sign In</span>
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button
-                  size="sm"
-                  className="relative group overflow-hidden bg-slate-950 text-white border border-white/10 px-6 h-9 transition-all duration-300 hover:border-purple-500/50 cursor-pointer"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <span className="relative z-10 flex items-center gap-2 font-semibold tracking-wide">
-                    Get Started
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </span>
-                  <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shine_1.5s_ease-in-out_infinite]" />
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-3 pl-2 pr-2 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[#2845D6]/50 rounded-2xl transition-all group shadow-sm"
+                  >
+                    <Avatar className="w-8 h-8 border border-slate-100 dark:border-slate-800 shadow-sm transition-transform group-hover:scale-95">
+                      <AvatarImage src={user?.avatar?.secureUrl} />
+                      <AvatarFallback className="bg-gradient-to-br from-[#2845D6] to-[#06D001] text-white text-[10px] font-black">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="hidden lg:block text-left mr-1">
+                      <p className="text-xs font-black leading-none text-slate-900 dark:text-white">
+                        {user?.firstName || "Learner"}
+                      </p>
+                      <p className="text-[9px] font-mono text-slate-400 uppercase tracking-tighter mt-1">
+                        {user?.role}
+                      </p>
+                    </div>
+                    <ChevronDown
+                      size={12}
+                      className={cn(
+                        "text-slate-400 transition-transform duration-300",
+                        isProfileOpen && "rotate-180",
+                      )}
+                    />
+                  </button>
+
+                  {/* Profile Dropdown */}
+                  {isProfileOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsProfileOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-[#0F172A] rounded-[2rem] shadow-2xl border border-slate-200/50 dark:border-white/10 z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="p-5 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
+                          <p className="text-[9px] font-mono text-slate-400 uppercase tracking-[0.2em] mb-1">
+                            Account
+                          </p>
+                          <p className="font-bold text-sm truncate text-slate-900 dark:text-white">
+                            {user?.email}
+                          </p>
+                        </div>
+
+                        <div className="p-2">
+                          <Link
+                            href="/learner/dashboard"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] dark:hover:text-white transition-colors"
+                          >
+                            <LayoutDashboard size={16} /> Dashboard
+                          </Link>
+                          <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] dark:hover:text-white transition-colors">
+                            <Settings size={16} /> Profile Settings
+                          </button>
+                          <div className="h-px bg-slate-100 dark:bg-white/5 my-2 mx-2" />
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                          >
+                            <LogOut size={16} /> Sign Out
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-600 dark:text-slate-300 hover:text-[#2845D6] dark:hover:white font-bold"
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button
+                      size="sm"
+                      className="bg-[#2845D6] hover:bg-[#1e36af] text-white rounded-xl px-5 font-bold shadow-lg shadow-blue-500/20"
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </nav>
 
             {/* Mobile Actions */}
