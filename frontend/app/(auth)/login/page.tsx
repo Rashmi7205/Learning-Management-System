@@ -1,17 +1,16 @@
 "use client";
 
-import * as React from "react";
-import { useState } from "react";
+import {useState,useEffect}from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/store/hooks";
-import { loginUser } from "@/lib/store/slices/authSlice";
+import { useAppDispatch, useAppSelector, useAuth } from "@/lib/store/hooks";
+import { fetchUserProfile, loginUser } from "@/lib/store/slices/authSlice";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +19,6 @@ export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch<any>();
   const { isLoading, error } = useAuth();
-
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +37,21 @@ export default function LoginPage() {
       );
     }
   };
+  const pathname = usePathname();
+  const isSignIn = pathname.includes("login");
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.push(
+        user.role === "instructor"
+          ? "/instructor/dashboard"
+          : "/learner/dashboard",
+      );
+    } else {
+      dispatch(fetchUserProfile());
+    }
+  }, [isAuthenticated, user, router]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

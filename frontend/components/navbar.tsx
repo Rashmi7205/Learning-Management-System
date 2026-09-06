@@ -122,7 +122,7 @@ export function Navbar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     <LayoutDashboard size={16} /> Dashboard
                   </Link>
                    <Link
-                    href="/learner/dashboard"
+                    href="/learner/profile"
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-[#2845D6]/5 hover:text-[#2845D6] transition-colors">
                     <Settings size={16} /> Profile
                   </Link>

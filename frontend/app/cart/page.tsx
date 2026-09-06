@@ -41,7 +41,7 @@ const CartPage = () => {
   const handleCheckout = async () => {
     try {
       setIsProcessing(true);
-
+      
       // 1. Initialize Razorpay SDK
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) throw new Error("Razorpay SDK failed to load");
@@ -199,7 +199,7 @@ const CartPage = () => {
                             src={
                               item?.thumbnail?.secureUrl || "/placeholder.png"
                             }
-                            alt={item?.title}
+                            alt={item?.title || "Course Thumbnail"}
                             fill
                             className="object-cover"
                           />
