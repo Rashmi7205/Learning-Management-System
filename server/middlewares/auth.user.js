@@ -4,7 +4,7 @@ import logger from "../utils/logger.js";
 
 const isLoggedIn = async (req, res, next) => {
     try {
-        // Try to get token from cookie first, then Authorization header
+       
         const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
         if (!token) {
