@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -8,26 +8,19 @@ import {
   Star,
   Settings,
   HelpCircle,
-  Search,
-  Bell,
-  Menu,
   LogOut,
   X,
+  Sparkles,
+  Menu,
+  Bell,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { useRouter } from "next/navigation";
 import { fetchInstructorProfile } from "@/lib/store/slices/instructorSlice";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
 
 const sidebarItems = [
   { title: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
@@ -43,232 +36,218 @@ const bottomSidebarItems = [
 ];
 
 export const Sidebar = ({ isOpen, onClose }) => {
-  const [activeItem, setActiveItem] = useState("/instructor/dashboard");
+  const pathname = usePathname();
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-gray-900 text-white
-          transform transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          flex flex-col h-screen
-        `}
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-[#0F172A] border-r border-white/5 text-slate-300
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        flex flex-col h-screen
+      `}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 bg-gray-800 flex-shrink-0">
-          <h1 className="text-xl font-bold">CourseLoop</h1>
+        {/* Brand Logo */}
+        <div className="flex items-center justify-between h-20 px-6 flex-shrink-0 border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <div className="bg-[#2845D6] p-1.5 rounded-lg shadow-lg shadow-blue-500/20">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-xl font-black tracking-tighter text-white italic">
+              LAB<span className="text-[#2845D6]">.</span>
+            </h1>
+          </div>
           <button
             onClick={onClose}
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-slate-500 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 px-3">
-          <div className="space-y-1">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeItem === item.href;
-
-              return (
-                <button
-                  key={item.href}
-                  onClick={() => setActiveItem(item.href)}
-                  className={`
-                    w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg
-                    transition-colors duration-200
-                    ${isActive ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}
-                  `}
-                >
-                  <div className="flex items-center">
-                    <Icon className="h-5 w-5 mr-3" />
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
+          <div>
+            <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4">
+              Main Menu
+            </p>
+            <div className="space-y-1">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      group flex items-center px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200
+                      ${
+                        isActive
+                          ? "bg-[#2845D6] text-white shadow-lg shadow-blue-500/20"
+                          : "hover:bg-white/5 hover:text-white"
+                      }
+                    `}
+                  >
+                    <Icon
+                      className={`h-5 w-5 mr-3 transition-colors ${isActive ? "text-white" : "text-slate-500 group-hover:text-[#2845D6]"}`}
+                    />
                     <span>{item.title}</span>
-                  </div>
-                </button>
-              );
-            })}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="my-6 border-t border-gray-700" />
-
-          <div className="space-y-1">
-            {bottomSidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeItem === item.href;
-
-              return (
-                <button
-                  key={item.href}
-                  onClick={() => setActiveItem(item.href)}
-                  className={`
-                    w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg
-                    transition-colors duration-200
-                    ${isActive ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}
-                  `}
-                >
-                  <Icon className="h-5 w-5 mr-3" />
-                  <span>{item.title}</span>
-                </button>
-              );
-            })}
+          <div>
+            <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-4">
+              Support
+            </p>
+            <div className="space-y-1">
+              {bottomSidebarItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center px-4 py-3 text-sm font-bold rounded-xl transition-all
+                      ${isActive ? "bg-white/10 text-white" : "hover:bg-white/5 hover:text-white"}`}
+                  >
+                    <Icon className="h-5 w-5 mr-3 text-slate-500" />
+                    <span>{item.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-3 border-t border-gray-700 flex-shrink-0">
-          <button className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">
-            <LogOut className="h-5 w-5 mr-3" />
-            <span>Logout</span>
+        {/* Logout */}
+        <div className="p-4 mt-auto border-t border-white/5">
+          <button className="w-full flex items-center px-4 py-3 text-sm font-bold text-red-400 rounded-xl hover:bg-red-500/10 transition-colors group">
+            <LogOut className="h-5 w-5 mr-3 transition-transform group-hover:-translate-x-1" />
+            <span>Logout Session</span>
           </button>
         </div>
       </aside>
     </>
   );
 };
-
 export const Header = ({ onMenuClick }) => {
-   const router = useRouter();
-   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { profile, loading } = useAppSelector((state) => state.instructor);
 
-   const { profile, loading } = useAppSelector((state) => state.instructor);
+  useEffect(() => {
+    if (!profile) dispatch(fetchInstructorProfile());
+  }, [dispatch, profile]);
 
-   useEffect(() => {
-     if (!profile) {
-       dispatch(fetchInstructorProfile());
-     }
-   }, [dispatch, profile]);
+  if (!profile) return null;
 
-   useEffect(() => {
-     if (!loading && !profile) {
-       router.replace("/login");
-     }
-   }, [loading, profile, router]);
+  const fullName = `${profile.user.firstName} ${profile.user.lastName}`;
+  const avatar =
+    profile.user.avatar?.secureUrl ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user.firstName}`;
 
-   if (!profile) return null;
-
-   const fullName = `${profile.user.firstName} ${profile.user.lastName}`;
-   const avatar =
-     profile.user.avatar?.secureUrl ||
-     `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.user.firstName}`;
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 flex-shrink-0">
-      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+    <header className="bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-30">
+      <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
-            className="lg:hidden text-gray-600 hover:text-gray-900"
+            className="lg:hidden text-slate-400 hover:text-white"
           >
             <Menu className="h-6 w-6" />
           </button>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-            Instructor Dashboard
-          </h2>
+          <div className="hidden sm:block">
+            <h2 className="text-sm font-black text-white uppercase tracking-widest italic">
+              Instructor <span className="text-[#2845D6]">Terminal</span>
+            </h2>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
-          <button className="text-gray-600 hover:text-gray-900 lg:hidden">
-            <Search className="h-5 w-5" />
-          </button>
-
-          <div className="hidden lg:flex items-center">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
-              />
-            </div>
-          </div>
+        <div className="flex items-center gap-4">
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5 text-gray-600" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative hover:bg-white/5 rounded-xl"
+              >
+                <Bell className="h-5 w-5 text-slate-400" />
+                <span className="absolute top-2 right-2 h-2 w-2 bg-[#2845D6] rounded-full border-2 border-[#0F172A]"></span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-96 overflow-y-auto">
-                <DropdownMenuItem className="flex flex-col items-start py-3">
-                  <p className="text-sm font-medium">New student enrolled</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    John Doe enrolled in "React Masterclass"
+            <DropdownMenuContent
+              align="end"
+              className="w-80 bg-[#161F35] border-white/10 text-white rounded-2xl p-2 shadow-2xl"
+            >
+              <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-slate-500 p-3">
+                Alerts
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuItem className="focus:bg-white/5 rounded-xl p-3 cursor-pointer">
+                <div className="space-y-1">
+                  <p className="text-sm font-bold">New student enrollment</p>
+                  <p className="text-xs text-slate-400">
+                    Someone just joined your Masterclass.
                   </p>
-                  <span className="text-xs text-gray-400 mt-1">
-                    2 hours ago
-                  </span>
-                </DropdownMenuItem>
-              </div>
+                </div>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
-                <span className="hidden sm:block text-sm text-gray-700 font-medium">
-                  {fullName}
-                </span>
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={avatar} alt={fullName} />
-                  <AvatarFallback>
+              <button className="flex items-center gap-3 p-1 pr-3 hover:bg-white/5 rounded-2xl transition-all">
+                <Avatar className="h-9 w-9 border border-white/10 shadow-lg">
+                  <AvatarImage src={avatar} />
+                  <AvatarFallback className="bg-[#2845D6] text-white font-bold">
                     {profile.user.firstName[0]}
-                    {profile.user.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{fullName}</span>
-                  <span className="text-xs text-gray-500">
-                    {profile.user.email}
+                <div className="hidden sm:flex flex-col items-start leading-none">
+                  <span className="text-xs font-black text-white">
+                    {fullName}
+                  </span>
+                  <span className="text-[10px] text-slate-500 uppercase mt-1">
+                    Verified Expert
                   </span>
                 </div>
-              </DropdownMenuLabel>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem asChild>
-                <Link href="/instructor/profile" className="flex items-center">
-                  <Users className="mr-2 h-4 w-4" />
-                  Profile
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 bg-[#161F35] border-white/10 text-white rounded-2xl p-2 shadow-2xl"
+            >
+              <DropdownMenuItem
+                asChild
+                className="focus:bg-white/5 rounded-xl cursor-pointer py-3"
+              >
+                <Link
+                  href="/instructor/profile"
+                  className="flex items-center font-bold"
+                >
+                  <Users className="mr-3 h-4 w-4 text-[#2845D6]" /> Profile
+                  Settings
                 </Link>
               </DropdownMenuItem>
-
-              <DropdownMenuItem className="flex items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
               <DropdownMenuItem
-                className="text-red-600 flex items-center cursor-pointer"
-                onClick={() => {
-                  // dispatch(logout());
-                  router.replace("/login");
-                }}
+                onClick={() => router.replace("/login")}
+                className="focus:bg-red-500/10 text-red-400 rounded-xl cursor-pointer py-3 font-bold"
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                <LogOut className="mr-3 h-4 w-4" /> Terminate Session
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

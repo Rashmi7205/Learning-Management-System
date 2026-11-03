@@ -16,8 +16,8 @@ import Order from "../models/order.model.js";
 const cookieOption = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     httpOnly: true,
-    secure: false,
-    sameSite: "lax"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict"
 };
 
 const register = async (req, res) => {

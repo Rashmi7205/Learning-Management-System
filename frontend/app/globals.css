@@ -557,3 +557,19 @@ html {
     left: 125%;
   }
 }
+.phone-input-container .PhoneInputInput {
+  background: transparent;
+  border: none;
+  color: white;
+  outline: none;
+  padding-left: 10px;
+}
+
+.phone-input-container .PhoneInputCountrySelect {
+  background-color: #0F172A;
+  color: white;
+}
+
+.phone-input-container .PhoneInputCountryIcon--border {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}

@@ -3,14 +3,14 @@
 import * as React from "react";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/store/hooks";
-import { registerUser } from "@/lib/store/slices/authSlice";
+import { useAppDispatch, useAppSelector, useAuth } from "@/lib/store/hooks";
+import { fetchUserProfile, registerUser } from "@/lib/store/slices/authSlice";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,6 +47,20 @@ export default function RegisterPage() {
       router.push("/dashboard");
     }
   };
+ const pathname = usePathname();
+ const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      router.push(
+        user.role === "instructor"
+          ? "/instructor/dashboard"
+          : "/learner/dashboard",
+      );
+    } else {
+      dispatch(fetchUserProfile());
+    }
+  }, [isAuthenticated, user, router]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

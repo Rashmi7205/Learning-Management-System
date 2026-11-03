@@ -1,72 +1,110 @@
-import ApiError from "../utils/user.error.js";
+import Jwt from "jsonwebtoken";
 import AppError from "../utils/user.error.js";
-import Jwt  from "jsonwebtoken";
+import logger from "../utils/logger.js";
 
-const isLoggedIn = async (req,res,next)=>{
-
+const isLoggedIn = async (req, res, next) => {
     try {
-        const {token} = req.cookies;
-        if(!token){
-            return next(AppError(res,'Unauthenticated User',400));
+       
+        const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            logger.security({
+                message: "Missing authentication token",
+                path: req.path,
+                ip: req.ip,
+            });
+            return next(AppError(res, "Unauthenticated User", 401));
         }
-        const userDetails =  Jwt.verify(token,process.env.JWT_SECRET);
-        req.user = userDetails;
 
-        next();
+        try {
+            const userDetails = Jwt.verify(token, process.env.JWT_SECRET);
+            req.user = userDetails;
+            next();
+        } catch (err) {
+            if (err.name === "TokenExpiredError") {
+                logger.security({
+                    message: "Expired token attempted",
+                    ip: req.ip,
+                });
+                return AppError(res, "Token expired, please login again", 401);
+            }
+            if (err.name === "JsonWebTokenError") {
+                logger.security({
+                    message: "Invalid token attempted",
+                    ip: req.ip,
+                });
+                return AppError(res, "Invalid token", 401);
+            }
+            throw err;
+        }
     } catch (error) {
-        return ApiError(res,error.message,500);
+        logger.error({
+            message: "Authentication error",
+            error: error.message,
+        });
+        return AppError(res, "Authentication failed", 500);
     }
+};
 
-}
 export const isInstructor = (req, res, next) => {
     try {
         if (!req.user) {
-            return next(AppError(res, "Authentication required", 401));
+            return AppError(res, "Authentication required", 401);
         }
-
         if (req.user.role !== "instructor") {
-            return next(
-                AppError(res, "Access denied. Instructor only.", 403)
-            );
+            logger.security({
+                message: "Non-instructor accessed instructor route",
+                userId: req.user.id,
+                path: req.path,
+                ip: req.ip,
+            });
+            return AppError(res, "Access denied. Instructor only.", 403);
         }
         next();
     } catch (error) {
-        return next(AppError(res, error.message, 500));
+        return AppError(res, "Authorization error", 500);
     }
 };
 
 export const isAdmin = (req, res, next) => {
     try {
         if (!req.user) {
-            return next(AppError(res, "Authentication required", 401));
+            return AppError(res, "Authentication required", 401);
         }
-
         if (req.user.role !== "admin") {
-            return next(
-                AppError(res, "Access denied. Admin only.", 403)
-            );
+            logger.security({
+                message: "Non-admin accessed admin route",
+                userId: req.user.id,
+                path: req.path,
+                ip: req.ip,
+            });
+            return AppError(res, "Access denied. Admin only.", 403);
         }
-
         next();
     } catch (error) {
-        return next(AppError(res, error.message, 500));
+        return AppError(res, "Authorization error", 500);
     }
 };
 
 export const isAdminOrInstructor = (req, res, next) => {
     try {
         if (!req.user) {
-            return next(AppError(res, "Authentication required", 401));
+            return AppError(res, "Authentication required", 401);
         }
         if (req.user.role !== "admin" && req.user.role !== "instructor") {
-            return next(
-                AppError(res, "Access denied. Admin or Instructor only.", 403)
-            );
+            logger.security({
+                message: "Unauthorized role access",
+                userId: req.user.id,
+                role: req.user.role,
+                path: req.path,
+                ip: req.ip,
+            });
+            return AppError(res, "Access denied. Admin or Instructor only.", 403);
         }
         next();
     } catch (error) {
-        return next(AppError(res, error.message, 500));
+        return AppError(res, "Authorization error", 500);
     }
-}
+};
 
-export default isLoggedIn
+export default isLoggedIn;

@@ -2,15 +2,11 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { fetchUserProfile, loginUser, registerUser } from "@/lib/store/slices/authSlice";
 
 // Typewriter Component
@@ -39,30 +35,12 @@ export function Typewriter({ text, speed = 60, cursor = "_" }: any) {
 
 export default function AuthUI({
   children,
-  logoSrc,
   imageSrc,
   backLink,
   quoteText,
 }: any) {
   const pathname = usePathname();
   const isSignIn = pathname.includes("login");
-
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { isLoading, error, isAuthenticated, user } = useAppSelector(
-    (state) => state.auth,
-  );
-
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      router.push(
-        user.role === "instructor" ? "/instructor/dashboard" : "/learner/dashboard",
-      );
-    }else{
-      dispatch(fetchUserProfile());
-    }
-  }, [isAuthenticated, user, router]);
 
   return (
     <div className="flex min-h-screen bg-[#020617] text-slate-200 overflow-hidden">

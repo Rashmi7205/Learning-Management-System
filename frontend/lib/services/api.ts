@@ -69,7 +69,7 @@ export const authService = {
   },
 
   resetPassword: async (token: string, password: string) => {
-    const response = await apiClient.post("/auth/reset-password", {
+    const response = await apiClient.post(`/auth/reset/${token}`, {
       token,
       password,
     });
@@ -247,7 +247,6 @@ export const paymentService = {
     const response = await apiClient.post("/payments/orders", {
       courseIds,
     });
-    // This returns { razorpayOrderId, amount, currency, key, orderId, ... }
     return response.data;
   },
 
